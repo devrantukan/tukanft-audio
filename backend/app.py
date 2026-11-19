@@ -569,12 +569,9 @@ def process_midi_data(
     }
 
 
-@app.get("/", response_class=HTMLResponse)
-async def get_index():
-    index_file = TEMPLATES_DIR / "index.html"
-    if not index_file.exists():
-        raise HTTPException(status_code=404, detail="Index template not found")
-    return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+@app.get("/")
+async def get_root():
+    return JSONResponse(content={"status": "ok", "service": "tukanft-audio-backend-api", "version": "2.0.0"})
 
 
 @app.get("/api/samples")
