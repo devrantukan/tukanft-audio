@@ -331,9 +331,16 @@ function StudioApp() {
     }
   };
 
+  const handleHeaderMenuClick = () => {
+    if (isMobileViewport) {
+      setIsMobileSidebarOpen((open) => !open);
+    } else {
+      toggleSidebarCollapse();
+    }
+  };
+
   return (
-    <div className="flex h-screen w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
-      {/* Lacuna-style Studio Sidebar */}
+    <div className="flex h-[100dvh] w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
       <Sidebar
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
@@ -347,17 +354,11 @@ function StudioApp() {
       {/* Main Studio Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Navbar Header */}
-        <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
+        <header className="pt-safe min-h-14 bg-slate-900/95 border-b border-slate-800 px-safe flex items-center justify-between gap-2 shrink-0 backdrop-blur-sm">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
-              onClick={() => {
-                if (isMobileViewport) {
-                  setIsMobileSidebarOpen((open) => !open);
-                } else {
-                  toggleSidebarCollapse();
-                }
-              }}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus:outline-none"
+              onClick={handleHeaderMenuClick}
+              className="w-10 h-10 shrink-0 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition focus:outline-none flex items-center justify-center"
               title={
                 isMobileViewport
                   ? "Open navigation menu"
@@ -365,36 +366,36 @@ function StudioApp() {
                     ? "Expand sidebar"
                     : "Collapse sidebar"
               }
-              aria-label="Toggle sidebar"
+              aria-label="Toggle navigation"
               aria-expanded={isMobileViewport ? isMobileSidebarOpen : undefined}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
               </svg>
             </button>
-            <h1 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <span>{activeTool === "virtual-piano" ? "Virtual Piano Simulator" : "MIDI to Sheet Music"}</span>
-              <span className="hidden sm:inline px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-rose-600/20 text-rose-400 border border-rose-500/30">
-                PRO STUDIO
-              </span>
-            </h1>
-            {activeTool === "midi-to-sheet" && scoreData && (
-              <span className="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs">
-                — {scoreData.metadata.title}
-              </span>
-            )}
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-bold text-white truncate">
+                {activeTool === "virtual-piano" ? "Virtual Piano" : "MIDI to Sheet Music"}
+              </h1>
+              {activeTool === "midi-to-sheet" && scoreData && (
+                <p className="text-[11px] text-slate-500 truncate">{scoreData.metadata.title}</p>
+              )}
+            </div>
+            <span className="hidden md:inline shrink-0 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-rose-600/15 text-rose-400 border border-rose-500/25">
+              Studio
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             {!user && (
               <button
                 onClick={openLoginModal}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
+                className="h-10 px-3 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
               >
-                <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-                <span>Sign In</span>
+                <span className="hidden sm:inline">Sign In</span>
               </button>
             )}
 
@@ -414,15 +415,16 @@ function StudioApp() {
               </button>
             )}
 
-            {activeTool === "midi-to-sheet" && (
+            {activeTool === "midi-to-sheet" && scoreData && (
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-sm shadow-rose-600/30 flex items-center gap-1.5 transition"
+                className="h-10 px-3 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-sm shadow-rose-600/30 flex items-center gap-1.5 transition"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span>{scoreData ? "New Score" : "Upload MIDI"}</span>
+                <span className="hidden sm:inline">New Score</span>
+                <span className="sm:hidden">New</span>
               </button>
             )}
 
@@ -449,31 +451,33 @@ function StudioApp() {
         ) : (
           /* MIDI to Sheet Music View */
           <>
-            <Toolbar
-              isPlaying={isPlaying}
-              isPaused={isPaused}
-              currentTime={currentTime}
-              duration={duration}
-              instrument={instrument}
-              sustainPedal={sustainPedal}
-              speed={speed}
-              volume={volume}
-              zoom={zoom}
-              layoutMode={layoutMode}
-              disabled={!scoreData}
-              onPlay={() => player.play()}
-              onPause={() => player.pause()}
-              onStop={() => player.stop()}
-              onInstrumentChange={handleInstrumentChange}
-              onTogglePedal={handleTogglePedal}
-              onSpeedChange={handleSpeedChange}
-              onVolumeChange={handleVolumeChange}
-              onZoomChange={setZoom}
-              onLayoutChange={setLayoutMode}
-              onPrint={handlePrint}
-              onDownloadMusicXml={handleDownloadMusicXml}
-              onDownloadMidi={handleDownloadMidi}
-            />
+            {scoreData && (
+              <Toolbar
+                isPlaying={isPlaying}
+                isPaused={isPaused}
+                currentTime={currentTime}
+                duration={duration}
+                instrument={instrument}
+                sustainPedal={sustainPedal}
+                speed={speed}
+                volume={volume}
+                zoom={zoom}
+                layoutMode={layoutMode}
+                disabled={!scoreData}
+                onPlay={() => player.play()}
+                onPause={() => player.pause()}
+                onStop={() => player.stop()}
+                onInstrumentChange={handleInstrumentChange}
+                onTogglePedal={handleTogglePedal}
+                onSpeedChange={handleSpeedChange}
+                onVolumeChange={handleVolumeChange}
+                onZoomChange={setZoom}
+                onLayoutChange={setLayoutMode}
+                onPrint={handlePrint}
+                onDownloadMusicXml={handleDownloadMusicXml}
+                onDownloadMidi={handleDownloadMidi}
+              />
+            )}
 
             {errorMessage && (
               <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-4 py-2 text-xs flex items-center justify-between">
@@ -506,13 +510,16 @@ function StudioApp() {
 
               <main className="flex-1 h-full min-w-0 relative">
                 {!scoreData && (
-                  <div className="h-full overflow-y-auto flex flex-col items-center justify-center py-10">
-                    <div className="text-center mb-4">
-                      <h2 className="text-2xl font-bold text-white tracking-tight">
-                        Transform MIDI into Engraved Sheet Music
+                  <div className="studio-ambient h-full overflow-y-auto pb-safe flex flex-col items-center justify-center py-8 sm:py-12 px-safe">
+                    <div className="text-center mb-8 max-w-lg">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400/90 mb-3">
+                        Professional engraving
+                      </p>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+                        Transform MIDI into engraved sheet music
                       </h2>
-                      <p className="text-sm text-slate-400 mt-1 max-w-lg">
-                        Real-time synthesis, smart tuplet cleanup, automatic grand staff separation, and multi-format export.
+                      <p className="text-sm sm:text-base text-slate-400 mt-3 leading-relaxed">
+                        Real-time playback, intelligent tuplet cleanup, automatic grand staff splitting, and export to MusicXML or MIDI.
                       </p>
                     </div>
                     <Dropzone
@@ -521,6 +528,9 @@ function StudioApp() {
                       samples={samples}
                       isLoading={isLoading}
                     />
+                    {statusMessage && (
+                      <p className="mt-6 text-sm text-slate-400 animate-pulse">{statusMessage}</p>
+                    )}
                   </div>
                 )}
 
@@ -554,6 +564,7 @@ function StudioApp() {
               Select a new MIDI file to engrave. Your current session will be preserved.
             </p>
             <Dropzone
+              variant="compact"
               onFileUpload={handleFileUpload}
               onSelectSample={handleSelectSample}
               samples={samples}
