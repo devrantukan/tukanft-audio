@@ -6,10 +6,14 @@ import Toolbar from "@/components/Toolbar";
 import SidebarControls from "@/components/SidebarControls";
 import ScoreViewer from "@/components/ScoreViewer";
 import Dropzone from "@/components/Dropzone";
+import LoginModal from "@/components/LoginModal";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { MidiAudioPlayer } from "@/lib/audioPlayer";
 import { ScoreData, SampleInfo, InstrumentType } from "@/types";
 
-export default function Home() {
+function StudioApp() {
+  const { user, openLoginModal } = useAuth();
+
   // Score state
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
   const [samples, setSamples] = useState<SampleInfo[]>([]);
@@ -308,6 +312,18 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
+            {!user ? (
+              <button
+                onClick={openLoginModal}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
+              >
+                <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                <span>Sign In</span>
+              </button>
+            ) : null}
+
             {scoreData && (
               <button
                 onClick={() => setShowControls(!showControls)}
@@ -454,5 +470,14 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <AuthProvider>
+      <StudioApp />
+      <LoginModal />
+    </AuthProvider>
   );
 }

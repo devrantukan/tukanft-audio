@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 interface ToolInfo {
   title: string;
@@ -51,19 +52,13 @@ const TOOL_INFO_MAP: Record<string, ToolInfo> = {
     title: "Tukanft Membership & Credits",
     badge: "FREE PLAN",
     icon: "💎",
-    desc: "You are currently on the Free Tier with 80 of 120 monthly credits used. Upgrade to Tukanft Pro ($12/mo) for unlimited MIDI exports, batch processing, and 24-bit audio renders.",
+    desc: "Upgrade to Tukanft Pro ($12/mo) for unlimited MIDI exports, batch processing, and 24-bit audio renders.",
   },
   "feedback": {
     title: "Feedback & Community",
     badge: "SUPPORT",
     icon: "💬",
     desc: "Have ideas, feature requests, or bugs to report? We build Tukanft Audio for musicians and producers. Send us your feedback!",
-  },
-  "account": {
-    title: "Devran Tukan's Account",
-    badge: "FREE TIER",
-    icon: "👤",
-    desc: "Account: Devran Tukan\nPlan: Free Member\nMonthly Usage: 80 / 120 credits used\nNext Reset: Dec 1, 2026\nCredit Pack: 0 Credits",
   },
 };
 
@@ -78,7 +73,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose = () => {},
   onSelectActiveTool = () => {},
 }) => {
+  const { user, openLoginModal, logout } = useAuth();
   const [activeModal, setActiveModal] = useState<ToolInfo | null>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleToolClick = (toolKey: string) => {
     if (toolKey === "midi-to-sheet") {
@@ -91,6 +88,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+        />
+      )}
+
+      {/* Main Studio Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-[265px] flex-col border-r border-slate-800 bg-[#0f172a] p-4 text-slate-300 transition-transform duration-200 lg:static lg:translate-x-0 ${
           isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
@@ -152,17 +158,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Active Tool: MIDI to Sheet Music */}
           <button
             onClick={() => handleToolClick("midi-to-sheet")}
-            className="flex items-center gap-3 rounded-lg bg-slate-800/90 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-white/10"
+            className="relative flex items-center gap-3 rounded-xl bg-slate-800/90 px-3 py-2.5 text-sm font-semibold text-white shadow-sm ring-1 ring-slate-700/60"
           >
-            <span className="text-indigo-400">🎵</span>
-            <span className="flex-1 text-left">MIDI to Sheet Music</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+            </span>
+            <span>MIDI to Sheet Music</span>
+            <span className="ml-auto h-2 w-2 rounded-full bg-red-500" />
           </button>
 
           <button
             onClick={() => handleToolClick("scanner")}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300"
           >
-            <span className="text-slate-400">📷</span>
+            <span>📷</span>
             <span>Sheet Music Scanner</span>
           </button>
 
@@ -171,27 +182,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white"
           >
             <div className="flex items-center gap-3">
-              <span className="text-slate-400">🧰</span>
+              <span>🧰</span>
               <span>All tools</span>
             </div>
             <span className="text-xs text-slate-600">›</span>
           </button>
         </nav>
 
-        <div className="my-3 border-t border-slate-800" />
-
-        {/* Footer Links */}
-        <div className="flex items-center justify-between px-1">
+        {/* Utilities Section */}
+        <div className="mt-4 flex flex-col gap-1 border-t border-slate-800/80 pt-3">
           <button
             onClick={() => handleToolClick("pricing")}
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-slate-400 hover:bg-slate-800/40 hover:text-white"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white"
           >
             <span>💎</span>
             <span>Pricing</span>
           </button>
+
           <button
             onClick={() => handleToolClick("feedback")}
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-slate-400 hover:bg-slate-800/40 hover:text-white"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white"
           >
             <span>💬</span>
             <span>Feedback</span>
@@ -201,47 +211,105 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* User Profile Card matching screenshot */}
-        <div
-          onClick={() => handleToolClick("account")}
-          className="cursor-pointer border-t border-slate-800 pt-3"
-        >
-          <div className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-slate-800/50">
-            <div className="relative h-9 w-9 overflow-hidden rounded-full ring-1 ring-slate-700">
-              <Image
-                src="/user-avatar.png"
-                alt="Devran Tukan"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="truncate text-sm font-semibold text-white">Devran Tukan</span>
-                <span className="rounded bg-slate-800 px-1 py-0.5 text-[10px] font-bold text-slate-400">
-                  FREE
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col text-[10px] text-slate-500">
-              <span>▲</span>
-              <span className="-mt-1.5">▼</span>
-            </div>
-          </div>
+        {/* User Profile Card OR Sign In Button */}
+        <div className="border-t border-slate-800 pt-3 relative">
+          {!user ? (
+            <button
+              onClick={openLoginModal}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 p-2.5 text-xs font-semibold text-white transition hover:border-slate-600 shadow-sm"
+            >
+              <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Sign In / Log In</span>
+            </button>
+          ) : (
+            <>
+              {/* User Menu Dropdown Popup */}
+              {isUserMenuOpen && (
+                <div
+                  className="absolute bottom-full left-0 mb-2 w-full rounded-xl bg-slate-900 border border-slate-800 p-2 shadow-2xl text-xs text-slate-200 z-50 animate-in fade-in duration-100"
+                >
+                  <div className="px-2 py-1.5 border-b border-slate-800 mb-1">
+                    <div className="font-semibold text-white truncate">{user.name}</div>
+                    <div className="text-[11px] text-slate-400 truncate">{user.email}</div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleToolClick("pricing");
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-800 flex items-center justify-between text-slate-300 hover:text-white"
+                  >
+                    <span>Upgrade to PRO</span>
+                    <span className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded font-bold">PRO</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      logout();
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 flex items-center gap-2 mt-1"
+                  >
+                    <svg className="w-3.5 h-3.5 stroke-current" fill="none" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              )}
 
-          <div className="mt-2 px-1">
-            <div className="flex justify-between text-xs text-slate-400">
-              <span>Monthly</span>
-              <span className="font-semibold text-slate-300">80/120</span>
-            </div>
-            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full w-[66.6%] rounded-full bg-gradient-to-r from-rose-500 to-red-500" />
-            </div>
-            <div className="mt-1.5 flex justify-between text-[11px] text-slate-500">
-              <span>✦ 0 Credit Pack</span>
-              <span>Resets Dec 1</span>
-            </div>
-          </div>
+              {/* User Profile Card matching screenshot */}
+              <div
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-slate-800/50 transition">
+                  <div className="relative h-9 w-9 overflow-hidden rounded-full ring-1 ring-slate-700 bg-slate-950">
+                    <Image
+                      src={user.avatarUrl || "/tukan-logo.png"}
+                      alt={user.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-semibold text-white">{user.name}</span>
+                      <span className="rounded bg-slate-800 px-1 py-0.5 text-[10px] font-bold text-slate-400">
+                        {user.plan}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col text-[10px] text-slate-500 group-hover:text-slate-300">
+                    <span>▲</span>
+                    <span className="-mt-1.5">▼</span>
+                  </div>
+                </div>
+
+                <div className="mt-2 px-1">
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>Monthly</span>
+                    <span className="font-semibold text-slate-300">
+                      {user.creditsUsed}/{user.creditsTotal}
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-300"
+                      style={{
+                        width: `${Math.min(100, Math.round((user.creditsUsed / user.creditsTotal) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="mt-1.5 flex justify-between text-[11px] text-slate-500">
+                    <span>✦ {user.creditPacks} Credit Pack</span>
+                    <span>Resets {user.resetDate}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </aside>
 
