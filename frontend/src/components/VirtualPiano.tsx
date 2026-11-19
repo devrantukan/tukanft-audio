@@ -724,7 +724,9 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         ref={keyboardScrollRef}
         onMouseDown={() => setIsMouseDown(true)}
         onMouseUp={() => setIsMouseDown(false)}
-        className="flex-1 w-full bg-[#070b14] overflow-x-auto overflow-y-hidden shadow-inner py-4 px-6 flex flex-col justify-end"
+        onTouchStart={() => setIsMouseDown(true)}
+        onTouchEnd={() => setIsMouseDown(false)}
+        className="flex-1 w-full bg-[#070b14] overflow-x-auto overflow-y-hidden shadow-inner py-4 px-6 flex flex-col justify-end touch-pan-x"
         style={{ scrollbarWidth: "thin" }}
       >
         <div className="relative inline-flex flex-col select-none mx-auto" style={{ width: TOTAL_PIANO_WIDTH }}>
@@ -767,7 +769,12 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                     onMouseUp={() => triggerNoteOff(key.midi)}
                     onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
                     onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
-                    className={`absolute z-20 w-7 h-36 rounded-b-md transition-all duration-75 cursor-pointer shadow-lg flex flex-col justify-between items-center py-2 ${
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      triggerNoteOn(key.midi);
+                    }}
+                    onTouchEnd={() => triggerNoteOff(key.midi)}
+                    className={`absolute z-20 w-7 h-36 rounded-b-md transition-all duration-75 cursor-pointer shadow-lg flex flex-col justify-between items-center py-2 touch-manipulation ${
                       isActive
                         ? "bg-gradient-to-b from-sky-400 to-indigo-600 shadow-cyan-500/50 scale-[0.98] ring-2 ring-cyan-300"
                         : "bg-gradient-to-b from-slate-900 via-slate-950 to-black hover:from-slate-800 hover:to-slate-900 border-x border-b border-slate-700/60"
@@ -815,7 +822,9 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                   onMouseUp={() => triggerNoteOff(key.midi)}
                   onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
                   onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
-                  className={`absolute z-10 w-11 h-52 rounded-b-lg border-x border-b transition-all duration-75 cursor-pointer flex flex-col justify-between items-center py-3 ${
+                  onTouchStart={() => triggerNoteOn(key.midi)}
+                  onTouchEnd={() => triggerNoteOff(key.midi)}
+                  className={`absolute z-10 w-11 h-52 rounded-b-lg border-x border-b transition-all duration-75 cursor-pointer flex flex-col justify-between items-center py-3 touch-manipulation ${
                     isActive
                       ? "bg-gradient-to-b from-sky-100 to-sky-300 border-sky-400 shadow-md shadow-sky-400/50 scale-[0.99]"
                       : "bg-gradient-to-b from-slate-100 via-white to-slate-200 hover:from-white hover:to-slate-100 border-slate-300 shadow-sm"
