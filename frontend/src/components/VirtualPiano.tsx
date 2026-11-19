@@ -139,6 +139,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
   const [player] = useState<MidiAudioPlayer>(() => new MidiAudioPlayer());
   const [activeMidiKeys, setActiveMidiKeys] = useState<Set<number>>(new Set());
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const touchActiveMidiRef = useRef<number | null>(null);
   const [instrument, setInstrument] = useState<InstrumentType>("piano");
   const [sustainPedal, setSustainPedal] = useState(true);
   const [labelMode, setLabelMode] = useState<KeyLabelMode>("notes");
@@ -573,16 +574,30 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
     player.setInstrument(inst, true);
   };
 
+  const handleKeyTouchStart = (midi: number) => (e: React.TouchEvent) => {
+    e.preventDefault();
+    touchActiveMidiRef.current = midi;
+    triggerNoteOn(midi);
+  };
+
+  const handleKeyTouchEnd = (midi: number) => (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (touchActiveMidiRef.current === midi) {
+      touchActiveMidiRef.current = null;
+    }
+    triggerNoteOff(midi);
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 text-slate-100 overflow-hidden select-none">
+    <div className="flex-1 flex flex-col min-h-0 h-full bg-slate-950 text-slate-100 overflow-hidden select-none">
       {/* Top Controls & Status Bar */}
-      <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-slate-900 border-b border-slate-800 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
         {/* Left: Title & MIDI Hardware status */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-base">🎹</span>
-            <span className="font-bold text-white text-sm">Virtual Piano Keyboard</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-base shrink-0">🎹</span>
+            <span className="font-bold text-white text-sm truncate">Virtual Piano</span>
+            <span className="hidden sm:inline px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shrink-0">
               88 KEYS
             </span>
           </div>
@@ -590,14 +605,14 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
           <div className="h-4 w-px bg-slate-800 hidden sm:block" />
 
           {/* MIDI controller status pill */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400">
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400">
             <span className={`w-2 h-2 rounded-full ${hasMidiDevice ? "bg-emerald-400 animate-pulse" : "bg-slate-600"}`} />
             <span className="truncate max-w-[200px]">{midiInputStatus}</span>
           </div>
         </div>
 
         {/* Center / Right: Instrument, Pedal, Key Label Display Mode */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* Sound selector */}
           <select
             value={instrument}
@@ -629,7 +644,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
           </button>
 
           {/* Clean Key Label Selector (Notes vs Shortcuts vs Both vs Off) */}
-          <div className="flex items-center bg-slate-950/80 border border-slate-800 rounded p-0.5 text-[11px]">
+          <div className="hidden sm:flex items-center bg-slate-950/80 border border-slate-800 rounded p-0.5 text-[11px]">
             <button
               onClick={() => setLabelMode("notes")}
               className={`px-2 py-0.5 rounded transition font-medium ${
@@ -679,9 +694,9 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
       </div>
 
       {/* Upper Transport & Demo Songs Bar */}
-      <div className="px-5 py-3 bg-slate-900/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-3">
-          <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+      <div className="px-3 sm:px-5 py-2 sm:py-3 bg-slate-900/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <h3 className="text-sm sm:text-lg font-bold text-white tracking-tight truncate">
             {activeSongTitle ? `Playing: ${activeSongTitle}` : "Play the Virtual Piano"}
           </h3>
           {isPlayingSong && (
@@ -726,12 +741,12 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         onMouseUp={() => setIsMouseDown(false)}
         onTouchStart={() => setIsMouseDown(true)}
         onTouchEnd={() => setIsMouseDown(false)}
-        className="flex-1 w-full bg-[#070b14] overflow-x-auto overflow-y-hidden shadow-inner py-4 px-6 flex flex-col justify-end touch-pan-x"
-        style={{ scrollbarWidth: "thin" }}
+        className="flex-1 min-h-0 w-full bg-[#070b14] overflow-x-auto overflow-y-auto sm:overflow-y-hidden shadow-inner py-2 sm:py-4 px-3 sm:px-6 flex flex-col justify-end touch-pan-x"
+        style={{ scrollbarWidth: "thin", WebkitOverflowScrolling: "touch" }}
       >
-        <div className="relative inline-flex flex-col select-none mx-auto" style={{ width: TOTAL_PIANO_WIDTH }}>
+        <div className="relative inline-flex flex-col select-none mx-auto touch-manipulation" style={{ width: TOTAL_PIANO_WIDTH }}>
           {/* Visualizer Lanes Canvas (exact same width as keys: 2288px!) */}
-          <div className="relative w-[2288px] h-52 sm:h-64 overflow-hidden rounded-t-xl bg-[#020409] border-t border-x border-slate-800/80 shadow-2xl">
+          <div className="relative w-[2288px] h-28 sm:h-52 md:h-64 overflow-hidden rounded-t-xl bg-[#020409] border-t border-x border-slate-800/80 shadow-2xl shrink-0">
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" width={TOTAL_PIANO_WIDTH} height={240} />
 
             {/* Ambient center watermark / prompt */}
@@ -748,7 +763,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
           <div className="w-[2288px] h-[3px] bg-gradient-to-r from-sky-500/20 via-sky-400 to-sky-500/20 shadow-md shadow-cyan-400/50 relative z-30" />
 
           {/* Piano Keyboard (exactly 2288px wide: 52 white keys * 44px) */}
-          <div className="relative h-56 w-[2288px] select-none pt-0.5">
+          <div className="relative h-40 sm:h-56 w-[2288px] select-none pt-0.5 shrink-0">
             {ALL_88_KEYS.map((key) => {
               const isActive = activeMidiKeys.has(key.midi);
               const geom = KEY_GEOMETRY_MAP.get(key.midi)!;
@@ -769,12 +784,10 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                     onMouseUp={() => triggerNoteOff(key.midi)}
                     onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
                     onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                      triggerNoteOn(key.midi);
-                    }}
-                    onTouchEnd={() => triggerNoteOff(key.midi)}
-                    className={`absolute z-20 w-7 h-36 rounded-b-md transition-all duration-75 cursor-pointer shadow-lg flex flex-col justify-between items-center py-2 touch-manipulation ${
+                    onTouchStart={handleKeyTouchStart(key.midi)}
+                    onTouchEnd={handleKeyTouchEnd(key.midi)}
+                    onTouchCancel={handleKeyTouchEnd(key.midi)}
+                    className={`absolute z-20 w-7 h-28 sm:h-36 rounded-b-md transition-all duration-75 cursor-pointer shadow-lg flex flex-col justify-between items-center py-2 touch-manipulation ${
                       isActive
                         ? "bg-gradient-to-b from-sky-400 to-indigo-600 shadow-cyan-500/50 scale-[0.98] ring-2 ring-cyan-300"
                         : "bg-gradient-to-b from-slate-900 via-slate-950 to-black hover:from-slate-800 hover:to-slate-900 border-x border-b border-slate-700/60"
@@ -822,9 +835,10 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                   onMouseUp={() => triggerNoteOff(key.midi)}
                   onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
                   onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
-                  onTouchStart={() => triggerNoteOn(key.midi)}
-                  onTouchEnd={() => triggerNoteOff(key.midi)}
-                  className={`absolute z-10 w-11 h-52 rounded-b-lg border-x border-b transition-all duration-75 cursor-pointer flex flex-col justify-between items-center py-3 touch-manipulation ${
+                  onTouchStart={handleKeyTouchStart(key.midi)}
+                  onTouchEnd={handleKeyTouchEnd(key.midi)}
+                  onTouchCancel={handleKeyTouchEnd(key.midi)}
+                  className={`absolute z-10 w-11 h-40 sm:h-52 rounded-b-lg border-x border-b transition-all duration-75 cursor-pointer flex flex-col justify-between items-center py-3 touch-manipulation ${
                     isActive
                       ? "bg-gradient-to-b from-sky-100 to-sky-300 border-sky-400 shadow-md shadow-sky-400/50 scale-[0.99]"
                       : "bg-gradient-to-b from-slate-100 via-white to-slate-200 hover:from-white hover:to-slate-100 border-slate-300 shadow-sm"

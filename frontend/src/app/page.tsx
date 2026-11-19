@@ -20,6 +20,8 @@ function StudioApp() {
 
   // Sidebar collapsed state (initialized to false to prevent Next.js SSR hydration mismatch)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
     try {
@@ -28,6 +30,18 @@ function StudioApp() {
         setIsSidebarCollapsed(true);
       }
     } catch (e) {}
+  }, []);
+
+  // Track mobile vs desktop and close the drawer when leaving mobile layout
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const onChange = () => {
+      setIsMobileViewport(mq.matches);
+      if (!mq.matches) setIsMobileSidebarOpen(false);
+    };
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   const toggleSidebarCollapse = () => {
@@ -39,26 +53,6 @@ function StudioApp() {
       return next;
     });
   };
-
-  // Mobile drawer open state (desktop uses static sidebar via lg: breakpoints)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const handleHeaderMenuToggle = () => {
-    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
-      toggleSidebarCollapse();
-    } else {
-      setIsSidebarOpen((prev) => !prev);
-    }
-  };
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => {
-      if (mq.matches) setIsSidebarOpen(false);
-    };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
 
   // Score state
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
@@ -341,8 +335,8 @@ function StudioApp() {
     <div className="flex h-screen w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
       {/* Lacuna-style Studio Sidebar */}
       <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleSidebarCollapse}
         activeTool={activeTool}
@@ -356,11 +350,23 @@ function StudioApp() {
         <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <button
-              onClick={handleHeaderMenuToggle}
+              onClick={() => {
+                if (isMobileViewport) {
+                  setIsMobileSidebarOpen((open) => !open);
+                } else {
+                  toggleSidebarCollapse();
+                }
+              }}
               className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus:outline-none"
-              title="Open menu"
-              aria-label="Open menu"
-              aria-expanded={isSidebarOpen}
+              title={
+                isMobileViewport
+                  ? "Open navigation menu"
+                  : isSidebarCollapsed
+                    ? "Expand sidebar"
+                    : "Collapse sidebar"
+              }
+              aria-label="Toggle sidebar"
+              aria-expanded={isMobileViewport ? isMobileSidebarOpen : undefined}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
