@@ -102,21 +102,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile Backdrop — only when the full navigation drawer is open */}
       {isOpen && (
         <div
           onClick={onClose}
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          aria-hidden="true"
         />
       )}
 
-      {/* Main Studio Sidebar */}
+      {/* Main Studio Sidebar — mobile: off-canvas drawer; desktop: static rail with optional collapse */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] text-slate-300 transition-all duration-200 lg:static lg:translate-x-0 ${isCollapsed ? "w-[68px] p-2.5" : "w-[265px] p-4"
-          } ${isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}`}
+        className={[
+          "fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] text-slate-300 transition-all duration-200",
+          "w-[265px] p-4",
+          "lg:static lg:translate-x-0",
+          isCollapsed ? "lg:w-[68px] lg:p-2.5" : "lg:w-[265px] lg:p-4",
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0",
+        ].join(" ")}
       >
         {/* Brand Header */}
-        <div className={`flex items-center pb-4 pt-1 ${isCollapsed ? "justify-center" : "justify-between px-2"}`}>
+        <div
+          className={`flex items-center pb-4 pt-1 ${
+            isCollapsed ? "lg:justify-center" : "justify-between px-2"
+          }`}
+        >
           <div className="flex items-center gap-3">
             <Image
               src="/tukan-logo.svg"
@@ -127,19 +137,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={onToggleCollapse}
               title={isCollapsed ? "Click to expand sidebar" : undefined}
             />
-            {!isCollapsed && (
-              <div className="flex items-baseline gap-1.5 leading-none overflow-hidden">
-                <span className="text-xl font-extrabold tracking-tight text-white">Tukanft</span>
-                <span className="text-xs font-bold uppercase tracking-wider text-red-500">audio</span>
-              </div>
-            )}
+            <div
+              className={`items-baseline gap-1.5 leading-none overflow-hidden ${
+                isCollapsed ? "hidden max-lg:flex" : "flex"
+              }`}
+            >
+              <span className="text-xl font-extrabold tracking-tight text-white">Tukanft</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-red-500">audio</span>
+            </div>
           </div>
 
           {/* Collapse/Expand Toggle Button */}
           <button
             onClick={onToggleCollapse}
-            className={`p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition ${isCollapsed ? "hidden" : "block"
-              }`}
+            className={`p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition hidden lg:block ${
+              isCollapsed ? "lg:hidden" : ""
+            }`}
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
           >
@@ -153,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {isCollapsed && (
           <button
             onClick={onToggleCollapse}
-            className="w-full flex items-center justify-center p-1.5 mb-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="w-full hidden lg:flex items-center justify-center p-1.5 mb-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
             title="Expand sidebar"
             aria-label="Expand sidebar"
           >
@@ -164,11 +177,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Section Label (when expanded) */}
-        {!isCollapsed && (
-          <div className="px-2 pb-1.5 pt-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            MIDI & NOTATION
-          </div>
-        )}
+        <div
+          className={`px-2 pb-1.5 pt-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${
+            isCollapsed ? "hidden max-lg:block" : "block"
+          }`}
+        >
+          MIDI & NOTATION
+        </div>
 
         {/* Navigation Section */}
         <nav className="flex flex-col gap-1 mt-1">
@@ -176,8 +191,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("virtual-piano")}
             title="Virtual Piano Keyboard Simulator"
-            className={`relative flex items-center rounded-xl transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5 text-sm font-semibold"
-              } ${activeTool === "virtual-piano"
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${activeTool === "virtual-piano"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
               }`}
@@ -190,12 +206,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               🎹
             </span>
-            {!isCollapsed && <span>Virtual Piano</span>}
-            {!isCollapsed && activeTool === "virtual-piano" && (
-              <span className="ml-auto h-2 w-2 rounded-full bg-red-500" />
-            )}
-            {isCollapsed && activeTool === "virtual-piano" && (
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Virtual Piano</span>
+            {activeTool === "virtual-piano" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-red-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 lg:top-1.5 lg:right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
             )}
           </button>
 
@@ -203,8 +220,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("midi-to-sheet")}
             title="MIDI to Sheet Music Converter"
-            className={`relative flex items-center rounded-xl transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5 text-sm font-semibold"
-              } ${activeTool === "midi-to-sheet"
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${activeTool === "midi-to-sheet"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
               }`}
@@ -219,99 +237,104 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
               </svg>
             </span>
-            {!isCollapsed && <span>MIDI to Sheet Music</span>}
-            {!isCollapsed && activeTool === "midi-to-sheet" && (
-              <span className="ml-auto h-2 w-2 rounded-full bg-red-500" />
-            )}
-            {isCollapsed && activeTool === "midi-to-sheet" && (
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>MIDI to Sheet Music</span>
+            {activeTool === "midi-to-sheet" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-red-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
             )}
           </button>
 
           <button
             onClick={() => handleToolClick("ai-midi")}
             title="AI MIDI Generator"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="text-slate-400 shrink-0">✨</span>
-            {!isCollapsed && <span>AI MIDI Generator</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>AI MIDI Generator</span>
           </button>
 
           <button
             onClick={() => handleToolClick("mp3-to-midi")}
             title="MP3 to MIDI"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="text-slate-400 shrink-0">🎙️</span>
-            {!isCollapsed && <span>MP3 to MIDI</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>MP3 to MIDI</span>
           </button>
 
           <button
             onClick={() => handleToolClick("sheet-to-midi")}
             title="Sheet Music to MIDI"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="text-slate-400 shrink-0">🎼</span>
-            {!isCollapsed && <span>Sheet Music to MIDI</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Sheet Music to MIDI</span>
           </button>
 
           <button
             onClick={() => handleToolClick("midi-editor")}
             title="MIDI Editor"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="text-slate-400 shrink-0">🎛️</span>
-            {!isCollapsed && <span>MIDI Editor</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>MIDI Editor</span>
           </button>
 
           <button
             onClick={() => handleToolClick("scanner")}
             title="Sheet Music Scanner"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="shrink-0">📷</span>
-            {!isCollapsed && <span>Sheet Music Scanner</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Sheet Music Scanner</span>
           </button>
 
           <button
             onClick={() => handleToolClick("all-tools")}
             title="All Tools"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "justify-between px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition justify-between px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <div className="flex items-center gap-3">
               <span className="shrink-0">🧰</span>
-              {!isCollapsed && <span>All tools</span>}
+              <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>All tools</span>
             </div>
-            {!isCollapsed && <span className="text-xs text-slate-600">›</span>}
+            <span className={`text-xs text-slate-600 ${isCollapsed ? "max-lg:inline hidden" : "inline"}`}>›</span>
           </button>
         </nav>
 
         {/* Utilities Section */}
-        <div className={`mt-4 flex flex-col gap-1 border-t border-slate-800/80 pt-3 ${isCollapsed ? "items-center" : ""}`}>
+        <div
+          className={`mt-4 flex flex-col gap-1 border-t border-slate-800/80 pt-3 ${
+            isCollapsed ? "lg:items-center" : ""
+          }`}
+        >
           <button
             onClick={() => handleToolClick("pricing")}
             title="Pricing & Credits"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5 w-full" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 w-full ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="shrink-0">💎</span>
-            {!isCollapsed && <span>Pricing</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Pricing</span>
           </button>
 
           <button
             onClick={() => handleToolClick("feedback")}
             title="Feedback & Support"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5 w-full" : "gap-3 px-3 py-2"
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 w-full ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
               }`}
           >
             <span className="shrink-0">💬</span>
-            {!isCollapsed && <span>Feedback</span>}
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Feedback</span>
           </button>
         </div>
 
@@ -324,13 +347,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={openLoginModal}
               title="Sign In / Log In"
-              className={`w-full flex items-center justify-center rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 font-semibold text-white transition hover:border-slate-600 shadow-sm ${isCollapsed ? "p-2.5" : "gap-2 p-2.5 text-xs"
-                }`}
+              className={`w-full flex items-center justify-center gap-2 p-2.5 text-xs rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 font-semibold text-white transition hover:border-slate-600 shadow-sm ${
+                isCollapsed ? "lg:gap-0" : ""
+              }`}
             >
               <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
-              {!isCollapsed && <span>Sign In / Log In</span>}
+              <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Sign In / Log In</span>
             </button>
           ) : (
             <>
@@ -373,7 +397,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {isCollapsed ? (
                 <div
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="cursor-pointer flex items-center justify-center p-1 rounded-xl hover:bg-slate-800/80 transition"
+                  className="cursor-pointer hidden lg:flex items-center justify-center p-1 rounded-xl hover:bg-slate-800/80 transition"
                   title={`${user.name} (${user.plan}) • ${user.creditsUsed}/${user.creditsTotal} credits`}
                 >
                   <div className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-slate-700 bg-slate-950">
@@ -385,12 +409,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
                 </div>
-              ) : (
-                /* Full Expanded User Profile Card */
-                <div
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="cursor-pointer group"
-                >
+              ) : null}
+              {/* Full profile on mobile drawer + desktop expanded; desktop collapsed uses avatar above */}
+              <div
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className={`cursor-pointer group ${isCollapsed ? "max-lg:block hidden" : "block"}`}
+              >
                   <div className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-slate-800/50 transition">
                     <div className="relative h-9 w-9 overflow-hidden rounded-full ring-1 ring-slate-700 bg-slate-950 shrink-0">
                       <Image
@@ -435,7 +459,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
                   </div>
                 </div>
-              )}
             </>
           )}
         </div>
