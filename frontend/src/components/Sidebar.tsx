@@ -33,7 +33,7 @@ const TOOL_INFO_MAP: Record<string, ToolInfo> = {
   "midi-editor": {
     title: "Interactive MIDI Editor",
     badge: "STUDIO TOOL",
-    icon: "🎹",
+    icon: "🎛️",
     desc: "Comprehensive browser-based piano roll editor with velocity curve drawing, quantization grids, note duration stretching, and multi-track routing.",
   },
   "scanner": {
@@ -62,15 +62,21 @@ const TOOL_INFO_MAP: Record<string, ToolInfo> = {
   },
 };
 
+export type ActiveToolType = "midi-to-sheet" | "virtual-piano";
+
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  activeTool?: ActiveToolType;
+  onSelectTool?: (tool: ActiveToolType) => void;
   onSelectActiveTool?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen = true,
   onClose = () => {},
+  activeTool = "midi-to-sheet",
+  onSelectTool,
   onSelectActiveTool = () => {},
 }) => {
   const { user, openLoginModal, logout } = useAuth();
@@ -79,7 +85,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleToolClick = (toolKey: string) => {
     if (toolKey === "midi-to-sheet") {
+      if (onSelectTool) onSelectTool("midi-to-sheet");
       onSelectActiveTool();
+      onClose();
+    } else if (toolKey === "virtual-piano") {
+      if (onSelectTool) onSelectTool("virtual-piano");
       onClose();
     } else {
       setActiveModal(TOOL_INFO_MAP[toolKey] || null);
@@ -123,6 +133,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <nav className="flex flex-col gap-1">
+          {/* Virtual Piano Tool */}
+          <button
+            onClick={() => handleToolClick("virtual-piano")}
+            className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+              activeTool === "virtual-piano"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+            }`}
+          >
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm ${
+                activeTool === "virtual-piano"
+                  ? "bg-red-500/10 text-red-500"
+                  : "bg-slate-800/80 text-slate-400"
+              }`}
+            >
+              🎹
+            </span>
+            <span>Virtual Piano</span>
+            {activeTool === "virtual-piano" && (
+              <span className="ml-auto h-2 w-2 rounded-full bg-red-500" />
+            )}
+          </button>
+
+          {/* MIDI to Sheet Music Tool */}
+          <button
+            onClick={() => handleToolClick("midi-to-sheet")}
+            className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+              activeTool === "midi-to-sheet"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+            }`}
+          >
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm ${
+                activeTool === "midi-to-sheet"
+                  ? "bg-red-500/10 text-red-500"
+                  : "bg-slate-800/80 text-slate-400"
+              }`}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+            </span>
+            <span>MIDI to Sheet Music</span>
+            {activeTool === "midi-to-sheet" && (
+              <span className="ml-auto h-2 w-2 rounded-full bg-red-500" />
+            )}
+          </button>
+
           <button
             onClick={() => handleToolClick("ai-midi")}
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -151,22 +211,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => handleToolClick("midi-editor")}
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white"
           >
-            <span className="text-slate-400">🎹</span>
+            <span className="text-slate-400">🎛️</span>
             <span>MIDI Editor</span>
-          </button>
-
-          {/* Active Tool: MIDI to Sheet Music */}
-          <button
-            onClick={() => handleToolClick("midi-to-sheet")}
-            className="relative flex items-center gap-3 rounded-xl bg-slate-800/90 px-3 py-2.5 text-sm font-semibold text-white shadow-sm ring-1 ring-slate-700/60"
-          >
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-              </svg>
-            </span>
-            <span>MIDI to Sheet Music</span>
-            <span className="ml-auto h-2 w-2 rounded-full bg-red-500" />
           </button>
 
           <button

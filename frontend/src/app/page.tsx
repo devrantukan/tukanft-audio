@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import Sidebar from "@/components/Sidebar";
+import Sidebar, { ActiveToolType } from "@/components/Sidebar";
 import Toolbar from "@/components/Toolbar";
 import SidebarControls from "@/components/SidebarControls";
 import ScoreViewer from "@/components/ScoreViewer";
 import Dropzone from "@/components/Dropzone";
+import VirtualPiano from "@/components/VirtualPiano";
 import LoginModal from "@/components/LoginModal";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { MidiAudioPlayer } from "@/lib/audioPlayer";
@@ -13,6 +14,9 @@ import { ScoreData, SampleInfo, InstrumentType } from "@/types";
 
 function StudioApp() {
   const { user, openLoginModal } = useAuth();
+
+  // Active Tool View
+  const [activeTool, setActiveTool] = useState<ActiveToolType>("midi-to-sheet");
 
   // Score state
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
@@ -218,10 +222,13 @@ function StudioApp() {
   };
 
   // OSMD ready hook
-  const handleOsmdReady = useCallback((osmd: any) => {
-    osmdInstanceRef.current = osmd;
-    player.osmd = osmd;
-  }, [player]);
+  const handleOsmdReady = useCallback(
+    (osmd: any) => {
+      osmdInstanceRef.current = osmd;
+      player.osmd = osmd;
+    },
+    [player]
+  );
 
   // Sound and instrument change
   const handleInstrumentChange = (newInst: InstrumentType) => {
@@ -291,7 +298,11 @@ function StudioApp() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
       {/* Lacuna-style Studio Sidebar */}
-      <Sidebar />
+      <Sidebar
+        activeTool={activeTool}
+        onSelectTool={(tool) => setActiveTool(tool)}
+        onSelectActiveTool={() => setActiveTool("midi-to-sheet")}
+      />
 
       {/* Main Studio Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
@@ -299,12 +310,12 @@ function StudioApp() {
         <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <h1 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <span>MIDI to Sheet Music</span>
+              <span>{activeTool === "virtual-piano" ? "Virtual Piano Simulator" : "MIDI to Sheet Music"}</span>
               <span className="hidden sm:inline px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-rose-600/20 text-rose-400 border border-rose-500/30">
                 PRO STUDIO
               </span>
             </h1>
-            {scoreData && (
+            {activeTool === "midi-to-sheet" && scoreData && (
               <span className="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs">
                 — {scoreData.metadata.title}
               </span>
@@ -312,7 +323,7 @@ function StudioApp() {
           </div>
 
           <div className="flex items-center gap-2">
-            {!user ? (
+            {!user && (
               <button
                 onClick={openLoginModal}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
@@ -322,9 +333,9 @@ function StudioApp() {
                 </svg>
                 <span>Sign In</span>
               </button>
-            ) : null}
+            )}
 
-            {scoreData && (
+            {activeTool === "midi-to-sheet" && scoreData && (
               <button
                 onClick={() => setShowControls(!showControls)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition flex items-center gap-1.5 ${
@@ -341,109 +352,129 @@ function StudioApp() {
               </button>
             )}
 
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-sm shadow-rose-600/30 flex items-center gap-1.5 transition"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>{scoreData ? "New Score" : "Upload MIDI"}</span>
-            </button>
+            {activeTool === "midi-to-sheet" && (
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-sm shadow-rose-600/30 flex items-center gap-1.5 transition"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>{scoreData ? "New Score" : "Upload MIDI"}</span>
+              </button>
+            )}
+
+            {activeTool === "virtual-piano" && (
+              <button
+                onClick={() => setActiveTool("midi-to-sheet")}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
+              >
+                <span>🎼 View Sheet Music</span>
+              </button>
+            )}
           </div>
         </header>
 
-        {/* Playback & View Toolbar */}
-        <Toolbar
-          isPlaying={isPlaying}
-          isPaused={isPaused}
-          currentTime={currentTime}
-          duration={duration}
-          instrument={instrument}
-          sustainPedal={sustainPedal}
-          speed={speed}
-          volume={volume}
-          zoom={zoom}
-          layoutMode={layoutMode}
-          disabled={!scoreData}
-          onPlay={() => player.play()}
-          onPause={() => player.pause()}
-          onStop={() => player.stop()}
-          onInstrumentChange={handleInstrumentChange}
-          onTogglePedal={handleTogglePedal}
-          onSpeedChange={handleSpeedChange}
-          onVolumeChange={handleVolumeChange}
-          onZoomChange={setZoom}
-          onLayoutChange={setLayoutMode}
-          onPrint={handlePrint}
-          onDownloadMusicXml={handleDownloadMusicXml}
-          onDownloadMidi={handleDownloadMidi}
-        />
-
-        {/* Global Error Banner if any */}
-        {errorMessage && (
-          <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-4 py-2 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-bold">Error:</span>
-              <span>{errorMessage}</span>
-            </div>
-            <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-white">
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Main Content Workspace: Left Controls + Canvas Sheet View */}
-        <div className="flex-1 flex min-h-0 relative overflow-hidden">
-          {/* Collapsible Left Settings & Analysis Panel */}
-          {scoreData && showControls && (
-            <SidebarControls
-              metadata={scoreData.metadata}
-              transpose={transpose}
-              quantize={quantize}
-              splitGrandStaff={splitGrandStaff}
-              selectedPart={selectedPart}
-              isProcessing={isReprocessing}
-              onTransposeChange={setTranspose}
-              onQuantizeChange={setQuantize}
-              onSplitGrandStaffChange={setSplitGrandStaff}
-              onSelectedPartChange={setSelectedPart}
-              onApplyTransformations={handleApplyTransformations}
+        {/* If Active Tool is Virtual Piano */}
+        {activeTool === "virtual-piano" ? (
+          <VirtualPiano
+            samples={samples}
+            onOpenScoreInSheetMusic={(data) => {
+              handleScoreLoaded(data);
+              setActiveTool("midi-to-sheet");
+            }}
+          />
+        ) : (
+          /* MIDI to Sheet Music View */
+          <>
+            <Toolbar
+              isPlaying={isPlaying}
+              isPaused={isPaused}
+              currentTime={currentTime}
+              duration={duration}
+              instrument={instrument}
+              sustainPedal={sustainPedal}
+              speed={speed}
+              volume={volume}
+              zoom={zoom}
+              layoutMode={layoutMode}
+              disabled={!scoreData}
+              onPlay={() => player.play()}
+              onPause={() => player.pause()}
+              onStop={() => player.stop()}
+              onInstrumentChange={handleInstrumentChange}
+              onTogglePedal={handleTogglePedal}
+              onSpeedChange={handleSpeedChange}
+              onVolumeChange={handleVolumeChange}
+              onZoomChange={setZoom}
+              onLayoutChange={setLayoutMode}
+              onPrint={handlePrint}
+              onDownloadMusicXml={handleDownloadMusicXml}
+              onDownloadMidi={handleDownloadMidi}
             />
-          )}
 
-          {/* Interactive Sheet Music Vector Display */}
-          <main className="flex-1 h-full min-w-0 relative">
-            {!scoreData && (
-              <div className="h-full overflow-y-auto flex flex-col items-center justify-center py-10">
-                <div className="text-center mb-4">
-                  <h2 className="text-2xl font-bold text-white tracking-tight">
-                    Transform MIDI into Engraved Sheet Music
-                  </h2>
-                  <p className="text-sm text-slate-400 mt-1 max-w-lg">
-                    Real-time synthesis, smart tuplet cleanup, automatic grand staff separation, and multi-format export.
-                  </p>
+            {errorMessage && (
+              <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-4 py-2 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">Error:</span>
+                  <span>{errorMessage}</span>
                 </div>
-                <Dropzone
-                  onFileUpload={handleFileUpload}
-                  onSelectSample={handleSelectSample}
-                  samples={samples}
-                  isLoading={isLoading}
-                />
+                <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-white">
+                  ✕
+                </button>
               </div>
             )}
 
-            {scoreData && (
-              <ScoreViewer
-                musicXml={scoreData.musicXml}
-                zoom={zoom}
-                layoutMode={layoutMode}
-                onOsmdReady={handleOsmdReady}
-                isLoading={isLoading || isReprocessing}
-              />
-            )}
-          </main>
-        </div>
+            <div className="flex-1 flex min-h-0 relative overflow-hidden">
+              {scoreData && showControls && (
+                <SidebarControls
+                  metadata={scoreData.metadata}
+                  transpose={transpose}
+                  quantize={quantize}
+                  splitGrandStaff={splitGrandStaff}
+                  selectedPart={selectedPart}
+                  isProcessing={isReprocessing}
+                  onTransposeChange={setTranspose}
+                  onQuantizeChange={setQuantize}
+                  onSplitGrandStaffChange={setSplitGrandStaff}
+                  onSelectedPartChange={setSelectedPart}
+                  onApplyTransformations={handleApplyTransformations}
+                />
+              )}
+
+              <main className="flex-1 h-full min-w-0 relative">
+                {!scoreData && (
+                  <div className="h-full overflow-y-auto flex flex-col items-center justify-center py-10">
+                    <div className="text-center mb-4">
+                      <h2 className="text-2xl font-bold text-white tracking-tight">
+                        Transform MIDI into Engraved Sheet Music
+                      </h2>
+                      <p className="text-sm text-slate-400 mt-1 max-w-lg">
+                        Real-time synthesis, smart tuplet cleanup, automatic grand staff separation, and multi-format export.
+                      </p>
+                    </div>
+                    <Dropzone
+                      onFileUpload={handleFileUpload}
+                      onSelectSample={handleSelectSample}
+                      samples={samples}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                )}
+
+                {scoreData && (
+                  <ScoreViewer
+                    musicXml={scoreData.musicXml}
+                    zoom={zoom}
+                    layoutMode={layoutMode}
+                    onOsmdReady={handleOsmdReady}
+                    isLoading={isLoading || isReprocessing}
+                  />
+                )}
+              </main>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Upload New Score Modal */}

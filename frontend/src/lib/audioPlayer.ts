@@ -306,6 +306,30 @@ export class MidiAudioPlayer {
     }
   }
 
+  playNote(midi: number, velocity: number = 0.8): void {
+    if (!this.synth) {
+      this.initAudio().then(() => {
+        if (this.synth) {
+          const freq = Tone.Frequency(midi, "midi").toFrequency();
+          this.synth.triggerAttack(freq, Tone.now(), Math.max(0.1, Math.min(1.0, velocity)));
+        }
+      });
+      return;
+    }
+    try {
+      const freq = Tone.Frequency(midi, "midi").toFrequency();
+      this.synth.triggerAttack(freq, Tone.now(), Math.max(0.1, Math.min(1.0, velocity)));
+    } catch (e) {}
+  }
+
+  releaseNote(midi: number): void {
+    if (!this.synth) return;
+    try {
+      const freq = Tone.Frequency(midi, "midi").toFrequency();
+      this.synth.triggerRelease([freq], Tone.now());
+    } catch (e) {}
+  }
+
   loadEvents(playbackEvents: PlaybackEvent[], totalDuration: number, osmdInstance: any = null, bpm: number = 120.0): void {
     this.stop();
     this.events = (playbackEvents || []).map((ev, idx) => ({ ...ev, _id: idx }));
