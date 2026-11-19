@@ -8,13 +8,22 @@ interface DropzoneProps {
   onSelectSample: (sampleId: string) => void;
   samples: SampleInfo[];
   isLoading: boolean;
+  variant?: "default" | "compact";
 }
+
+const FEATURES = [
+  "Grand staff split",
+  "Smart tuplets",
+  "Live playback",
+  "MusicXML export",
+];
 
 export default function Dropzone({
   onFileUpload,
   onSelectSample,
   samples,
   isLoading,
+  variant = "default",
 }: DropzoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,18 +57,21 @@ export default function Dropzone({
     }
   };
 
+  const isCompact = variant === "compact";
+
   return (
-    <div className="w-full max-w-4xl mx-auto my-6 px-4">
-      {/* Drag & Drop Box */}
+    <div className={`w-full mx-auto ${isCompact ? "max-w-2xl" : "max-w-xl sm:max-w-2xl"} px-safe`}>
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !isLoading && fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 ${
+        className={`group relative border-2 border-dashed rounded-2xl text-center cursor-pointer transition-all duration-300 ${
+          isCompact ? "p-6 sm:p-8" : "p-8 sm:p-10"
+        } ${
           isDragOver
-            ? "border-rose-500 bg-rose-950/20 shadow-lg shadow-rose-950/30 scale-[1.01]"
-            : "border-slate-800 bg-slate-900/40 hover:bg-slate-900/70 hover:border-slate-700"
+            ? "border-rose-400 bg-rose-950/25 shadow-xl shadow-rose-950/25 scale-[1.01]"
+            : "border-slate-700/80 bg-slate-900/50 hover:bg-slate-900/80 hover:border-slate-600"
         } ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
       >
         <input
@@ -70,39 +82,59 @@ export default function Dropzone({
           className="hidden"
         />
 
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-rose-600/20 to-indigo-600/20 border border-slate-700/60 flex items-center justify-center text-rose-500 shadow-inner">
-          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-rose-500/25 via-slate-800 to-indigo-600/25 border border-slate-600/50 flex items-center justify-center text-rose-400 shadow-lg shadow-rose-950/20">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
         </div>
 
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-1">
-          Drop your MIDI file here, or <span className="text-rose-500 underline underline-offset-4">browse</span>
-        </h3>
-        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-          Supports multi-track polyphonic MIDI files. Fast automatic grand staff splitting, key signature detection, and tuplet quantization.
+        <p className="text-base sm:text-lg font-semibold text-white mb-2">
+          {isDragOver ? "Release to engrave" : "Drop your MIDI file here"}
         </p>
+        <p className="text-sm text-slate-400 mb-4">
+          or{" "}
+          <span className="text-rose-400 font-medium underline underline-offset-4 decoration-rose-500/50">
+            browse from device
+          </span>
+        </p>
+
+        {!isCompact && (
+          <div className="flex flex-wrap justify-center gap-2 mb-1">
+            {FEATURES.map((label) => (
+              <span
+                key={label}
+                className="text-[10px] sm:text-xs font-medium uppercase tracking-wide px-2.5 py-1 rounded-full bg-slate-800/80 text-slate-400 border border-slate-700/60"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Preloaded Sample Scores */}
       {samples.length > 0 && (
-        <div className="mt-5">
-          <div className="text-xs font-medium text-slate-400 mb-2.5 flex items-center gap-1.5">
-            <span className="text-rose-500">⚡</span>
-            <span>Or test with a preloaded sample:</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="mt-6">
+          <p className="text-xs font-medium text-slate-500 mb-3 text-center sm:text-left">
+            Try a sample score
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {samples.map((s) => (
               <button
                 key={s.id}
-                onClick={() => onSelectSample(s.id)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectSample(s.id);
+                }}
                 disabled={isLoading}
-                className="text-left p-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-slate-800/80 hover:border-slate-700 transition group disabled:opacity-50"
+                className="text-left p-3.5 min-h-[3.25rem] rounded-xl bg-slate-900/70 hover:bg-slate-800/90 border border-slate-800 hover:border-slate-600 transition group disabled:opacity-50"
               >
-                <div className="text-xs font-semibold text-slate-200 group-hover:text-rose-400 transition truncate">
+                <div className="text-sm font-semibold text-slate-100 group-hover:text-rose-300 transition truncate">
                   {s.title}
                 </div>
-                <div className="text-[11px] text-slate-400 truncate mt-0.5">{s.composer}</div>
+                <div className="text-xs text-slate-500 truncate mt-0.5">{s.composer}</div>
               </button>
             ))}
           </div>

@@ -75,7 +75,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  isOpen = true,
+  isOpen = false,
   onClose = () => { },
   isCollapsed = false,
   onToggleCollapse = () => { },
