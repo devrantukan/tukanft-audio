@@ -76,12 +76,12 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen = true,
-  onClose = () => {},
+  onClose = () => { },
   isCollapsed = false,
-  onToggleCollapse = () => {},
+  onToggleCollapse = () => { },
   activeTool = "midi-to-sheet",
   onSelectTool,
-  onSelectActiveTool = () => {},
+  onSelectActiveTool = () => { },
 }) => {
   const { user, openLoginModal, logout } = useAuth();
   const [activeModal, setActiveModal] = useState<ToolInfo | null>(null);
@@ -112,9 +112,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Main Studio Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] text-slate-300 transition-all duration-200 lg:static lg:translate-x-0 ${
-          isCollapsed ? "w-[68px] p-2.5" : "w-[265px] p-4"
-        } ${isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] text-slate-300 transition-all duration-200 lg:static lg:translate-x-0 ${isCollapsed ? "w-[68px] p-2.5" : "w-[265px] p-4"
+          } ${isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}`}
       >
         {/* Brand Header */}
         <div className={`flex items-center pb-4 pt-1 ${isCollapsed ? "justify-center" : "justify-between px-2"}`}>
@@ -139,9 +138,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Collapse/Expand Toggle Button */}
           <button
             onClick={onToggleCollapse}
-            className={`p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition ${
-              isCollapsed ? "hidden" : "block"
-            }`}
+            className={`p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition ${isCollapsed ? "hidden" : "block"
+              }`}
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
           >
@@ -178,20 +176,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("virtual-piano")}
             title="Virtual Piano Keyboard Simulator"
-            className={`relative flex items-center rounded-xl transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5 text-sm font-semibold"
-            } ${
-              activeTool === "virtual-piano"
+            className={`relative flex items-center rounded-xl transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5 text-sm font-semibold"
+              } ${activeTool === "virtual-piano"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-            }`}
+              }`}
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
-                activeTool === "virtual-piano"
-                  ? "bg-red-500/10 text-red-500"
-                  : "bg-slate-800/80 text-slate-400"
-              }`}
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${activeTool === "virtual-piano"
+                ? "bg-red-500/10 text-red-500"
+                : "bg-slate-800/80 text-slate-400"
+                }`}
             >
               🎹
             </span>
@@ -208,20 +203,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("midi-to-sheet")}
             title="MIDI to Sheet Music Converter"
-            className={`relative flex items-center rounded-xl transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5 text-sm font-semibold"
-            } ${
-              activeTool === "midi-to-sheet"
+            className={`relative flex items-center rounded-xl transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5 text-sm font-semibold"
+              } ${activeTool === "midi-to-sheet"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-            }`}
+              }`}
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
-                activeTool === "midi-to-sheet"
-                  ? "bg-red-500/10 text-red-500"
-                  : "bg-slate-800/80 text-slate-400"
-              }`}
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${activeTool === "midi-to-sheet"
+                ? "bg-red-500/10 text-red-500"
+                : "bg-slate-800/80 text-slate-400"
+                }`}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -239,9 +231,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("ai-midi")}
             title="AI MIDI Generator"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="text-slate-400 shrink-0">✨</span>
             {!isCollapsed && <span>AI MIDI Generator</span>}
@@ -250,9 +241,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("mp3-to-midi")}
             title="MP3 to MIDI"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="text-slate-400 shrink-0">🎙️</span>
             {!isCollapsed && <span>MP3 to MIDI</span>}
@@ -261,9 +251,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("sheet-to-midi")}
             title="Sheet Music to MIDI"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="text-slate-400 shrink-0">🎼</span>
             {!isCollapsed && <span>Sheet Music to MIDI</span>}
@@ -272,9 +261,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("midi-editor")}
             title="MIDI Editor"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="text-slate-400 shrink-0">🎛️</span>
             {!isCollapsed && <span>MIDI Editor</span>}
@@ -283,9 +271,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("scanner")}
             title="Sheet Music Scanner"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 transition ${
-              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 transition ${isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="shrink-0">📷</span>
             {!isCollapsed && <span>Sheet Music Scanner</span>}
@@ -294,9 +281,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("all-tools")}
             title="All Tools"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5" : "justify-between px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5" : "justify-between px-3 py-2"
+              }`}
           >
             <div className="flex items-center gap-3">
               <span className="shrink-0">🧰</span>
@@ -311,9 +297,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("pricing")}
             title="Pricing & Credits"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5 w-full" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5 w-full" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="shrink-0">💎</span>
             {!isCollapsed && <span>Pricing</span>}
@@ -322,9 +307,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => handleToolClick("feedback")}
             title="Feedback & Support"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${
-              isCollapsed ? "justify-center p-2.5 w-full" : "gap-3 px-3 py-2"
-            }`}
+            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition ${isCollapsed ? "justify-center p-2.5 w-full" : "gap-3 px-3 py-2"
+              }`}
           >
             <span className="shrink-0">💬</span>
             {!isCollapsed && <span>Feedback</span>}
@@ -340,9 +324,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={openLoginModal}
               title="Sign In / Log In"
-              className={`w-full flex items-center justify-center rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 font-semibold text-white transition hover:border-slate-600 shadow-sm ${
-                isCollapsed ? "p-2.5" : "gap-2 p-2.5 text-xs"
-              }`}
+              className={`w-full flex items-center justify-center rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 font-semibold text-white transition hover:border-slate-600 shadow-sm ${isCollapsed ? "p-2.5" : "gap-2 p-2.5 text-xs"
+                }`}
             >
               <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -354,9 +337,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* User Menu Dropdown Popup */}
               {isUserMenuOpen && (
                 <div
-                  className={`absolute bottom-full mb-2 rounded-xl bg-slate-900 border border-slate-800 p-2 shadow-2xl text-xs text-slate-200 z-50 animate-in fade-in duration-100 ${
-                    isCollapsed ? "left-0 w-56" : "left-0 w-full"
-                  }`}
+                  className={`absolute bottom-full mb-2 rounded-xl bg-slate-900 border border-slate-800 p-2 shadow-2xl text-xs text-slate-200 z-50 animate-in fade-in duration-100 ${isCollapsed ? "left-0 w-56" : "left-0 w-full"
+                    }`}
                 >
                   <div className="px-2 py-1.5 border-b border-slate-800 mb-1">
                     <div className="font-semibold text-white truncate">{user.name}</div>

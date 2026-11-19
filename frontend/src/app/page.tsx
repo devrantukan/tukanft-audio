@@ -18,27 +18,24 @@ function StudioApp() {
   // Active Tool View
   const [activeTool, setActiveTool] = useState<ActiveToolType>("midi-to-sheet");
 
-  // Sidebar collapsed state with localStorage persistence
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("tukanft_sidebar_collapsed");
-        return saved === "true";
-      } catch (e) {
-        return false;
+  // Sidebar collapsed state (initialized to false to prevent Next.js SSR hydration mismatch)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("tukanft_sidebar_collapsed");
+      if (saved === "true") {
+        setIsSidebarCollapsed(true);
       }
-    }
-    return false;
-  });
+    } catch (e) {}
+  }, []);
 
   const toggleSidebarCollapse = () => {
     setIsSidebarCollapsed((prev) => {
       const next = !prev;
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("tukanft_sidebar_collapsed", String(next));
-        } catch (e) {}
-      }
+      try {
+        localStorage.setItem("tukanft_sidebar_collapsed", String(next));
+      } catch (e) {}
       return next;
     });
   };

@@ -55,6 +55,43 @@ const KEY_SHORTCUTS: Record<string, number> = {
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
+interface KeyGeometry {
+  isBlack: boolean;
+  left: number;
+  centerX: number;
+  width: number;
+}
+
+function computeKeyGeometry(midi: number): KeyGeometry {
+  let whiteCountBefore = 0;
+  for (let m = 21; m < midi; m++) {
+    const name = NOTE_NAMES[m % 12];
+    if (!name.includes("#")) {
+      whiteCountBefore++;
+    }
+  }
+  const isBlack = NOTE_NAMES[midi % 12].includes("#");
+  const whiteKeyWidth = 44;
+  const blackKeyWidth = 28;
+
+  if (isBlack) {
+    const centerX = whiteCountBefore * whiteKeyWidth;
+    const left = centerX - blackKeyWidth / 2;
+    return { isBlack: true, left, centerX, width: blackKeyWidth };
+  } else {
+    const left = whiteCountBefore * whiteKeyWidth;
+    const centerX = left + whiteKeyWidth / 2;
+    return { isBlack: false, left, centerX, width: whiteKeyWidth };
+  }
+}
+
+const TOTAL_PIANO_WIDTH = 52 * 44; // 2288px (52 white keys)
+
+const KEY_GEOMETRY_MAP = new Map<number, KeyGeometry>();
+for (let m = 21; m <= 108; m++) {
+  KEY_GEOMETRY_MAP.set(m, computeKeyGeometry(m));
+}
+
 // Build standard 88-key piano (A0 to C8: MIDI 21 to 108)
 function generate88Keys(): PianoKeyData[] {
   const keys: PianoKeyData[] = [];
@@ -109,12 +146,10 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
   useEffect(() => {
     if (keyboardScrollRef.current) {
       const container = keyboardScrollRef.current;
-      const c4Element = document.getElementById("key-60");
-      if (c4Element) {
-        const offset = c4Element.offsetLeft - container.clientWidth / 2 + c4Element.clientWidth / 2;
+      const c4 = KEY_GEOMETRY_MAP.get(60);
+      if (c4) {
+        const offset = c4.centerX - container.clientWidth / 2;
         container.scrollTo({ left: Math.max(0, offset), behavior: "smooth" });
-      } else {
-        container.scrollLeft = container.scrollWidth * 0.38;
       }
     }
   }, []);
@@ -244,13 +279,8 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
 
     const render = () => {
       const dpr = window.devicePixelRatio || 1;
-      const displayWidth = canvas.clientWidth;
-      const displayHeight = canvas.clientHeight;
-
-      if (displayWidth === 0 || displayHeight === 0) {
-        animId = requestAnimationFrame(render);
-        return;
-      }
+      const displayWidth = TOTAL_PIANO_WIDTH; // exactly 2288px
+      const displayHeight = 240;
 
       const targetWidth = Math.round(displayWidth * dpr);
       const targetHeight = Math.round(displayHeight * dpr);
@@ -262,71 +292,70 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
       ctx.save();
       ctx.scale(dpr, dpr);
 
-      // Background gradient
+      // Deep dark studio visualizer background
       ctx.clearRect(0, 0, displayWidth, displayHeight);
       const bgGrad = ctx.createLinearGradient(0, 0, 0, displayHeight);
-      bgGrad.addColorStop(0, "#030712");
-      bgGrad.addColorStop(0.7, "#0b0f19");
-      bgGrad.addColorStop(1, "#020617");
+      bgGrad.addColorStop(0, "#020409");
+      bgGrad.addColorStop(0.7, "#080d1a");
+      bgGrad.addColorStop(1, "#03060e");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, displayWidth, displayHeight);
 
-      const canvasRect = canvas.getBoundingClientRect();
-
-      // Subtle Pianovera-style vertical track lane guidelines aligned with keys
-      const container = keyboardScrollRef.current;
-      const keysWrapper = container?.firstElementChild as HTMLElement | null;
-      if (keysWrapper) {
-        const keyNodes = keysWrapper.children;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
+      // 1. Draw Pianovera-style vertical lanes for all 52 white keys
+      for (let w = 0; w <= 52; w++) {
+        const x = w * 44;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, displayHeight);
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.15)";
         ctx.lineWidth = 1;
-        for (let i = 0; i < keyNodes.length; i++) {
-          const el = keyNodes[i] as HTMLElement;
-          if (el && el.id && !el.id.includes("undefined")) {
-            const r = el.getBoundingClientRect();
-            const leftX = r.left - canvasRect.left;
-            if (leftX >= -20 && leftX <= displayWidth + 20) {
-              ctx.beginPath();
-              ctx.moveTo(leftX, 0);
-              ctx.lineTo(leftX, displayHeight);
-              ctx.stroke();
-            }
-          }
-        }
+        ctx.stroke();
       }
 
-      // Horizon glow line above keys
-      ctx.beginPath();
-      ctx.moveTo(0, displayHeight - 1);
-      ctx.lineTo(displayWidth, displayHeight - 1);
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      // 2. Draw darker vertical columns for all 36 black keys
+      ALL_88_KEYS.forEach((key) => {
+        if (key.isBlack) {
+          const geom = KEY_GEOMETRY_MAP.get(key.midi);
+          if (geom) {
+            // Darker column for black key track
+            ctx.fillStyle = "rgba(2, 6, 23, 0.6)";
+            ctx.fillRect(geom.left, 0, geom.width, displayHeight);
 
-      // Light waterfall beams for active keys (exact 1:1 horizontal alignment)
+            // Subtle lane edges
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.1)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(geom.left, 0);
+            ctx.lineTo(geom.left, displayHeight);
+            ctx.moveTo(geom.left + geom.width, 0);
+            ctx.lineTo(geom.left + geom.width, displayHeight);
+            ctx.stroke();
+          }
+        }
+      });
+
+      // 3. Falling light waterfall beams for active keys (100% physically aligned to key position)
       const currentActive = activeMidiKeysRef.current;
       currentActive.forEach((midi) => {
-        const keyEl = document.getElementById(`key-${midi}`);
-        if (keyEl) {
-          const rect = keyEl.getBoundingClientRect();
-          // Precise center and width in CSS pixel space (identical to ctx scaled by dpr)
-          const x = rect.left - canvasRect.left + rect.width / 2;
-          const width = rect.width;
+        const geom = KEY_GEOMETRY_MAP.get(midi);
+        if (geom) {
+          const x = geom.centerX;
+          const width = geom.width;
 
           // Main vertical light beam
           const beamGrad = ctx.createLinearGradient(0, displayHeight, 0, 0);
-          beamGrad.addColorStop(0, "rgba(56, 189, 248, 0.9)");
-          beamGrad.addColorStop(0.2, "rgba(56, 189, 248, 0.6)");
-          beamGrad.addColorStop(0.55, "rgba(99, 102, 241, 0.25)");
+          beamGrad.addColorStop(0, "rgba(56, 189, 248, 0.95)");
+          beamGrad.addColorStop(0.2, "rgba(56, 189, 248, 0.65)");
+          beamGrad.addColorStop(0.55, "rgba(99, 102, 241, 0.3)");
           beamGrad.addColorStop(1, "rgba(99, 102, 241, 0)");
 
           ctx.fillStyle = beamGrad;
-          ctx.fillRect(x - width / 2, 0, width, displayHeight);
+          ctx.fillRect(geom.left, 0, width, displayHeight);
 
           // Core bright center streak
           const coreGrad = ctx.createLinearGradient(0, displayHeight, 0, 0);
           coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-          coreGrad.addColorStop(0.15, "rgba(224, 242, 254, 0.65)");
+          coreGrad.addColorStop(0.15, "rgba(224, 242, 254, 0.7)");
           coreGrad.addColorStop(0.5, "rgba(186, 230, 253, 0)");
           ctx.fillStyle = coreGrad;
           ctx.fillRect(x - width * 0.2, 0, width * 0.4, displayHeight);
@@ -343,6 +372,14 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
           ctx.fill();
         }
       });
+
+      // 4. Horizon line glow
+      ctx.beginPath();
+      ctx.moveTo(0, displayHeight - 1);
+      ctx.lineTo(displayWidth, displayHeight - 1);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
       ctx.restore();
 
@@ -509,29 +546,19 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         </div>
       </div>
 
-      {/* Hero Visualizer Banner */}
-      <div className="relative flex-1 min-h-[160px] max-h-[340px] w-full overflow-hidden flex flex-col justify-between">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-
-        {/* Ambient overlay info */}
-        <div className="relative z-10 p-5 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
-          <div>
-            <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight drop-shadow-md">
-              {activeSongTitle ? `Playing: ${activeSongTitle}` : "Play the Virtual Piano"}
-            </h3>
-            <p className="text-xs text-slate-300 mt-1 drop-shadow">
-              Play with mouse, computer keyboard (QWERTY), or plug in any real USB/Bluetooth MIDI keyboard.
-            </p>
-          </div>
-
-          {/* Song playback transport if active */}
+      {/* Upper Transport & Demo Songs Bar */}
+      <div className="px-5 py-3 bg-slate-900/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+            {activeSongTitle ? `Playing: ${activeSongTitle}` : "Play the Virtual Piano"}
+          </h3>
           {isPlayingSong && (
-            <div className="pointer-events-auto flex items-center gap-2 bg-slate-900/90 border border-slate-800 p-2 rounded-xl backdrop-blur">
+            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
               <button
                 onClick={handleStopSong}
-                className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 transition"
+                className="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition"
               >
-                <span>⏹ Stop Song</span>
+                ⏹ Stop
               </button>
               <span className="font-mono text-xs text-slate-300">
                 {Math.floor(songProgress / 60)}:
@@ -544,7 +571,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         </div>
 
         {/* Preloaded demo song chips */}
-        <div className="relative z-10 px-5 pb-3 flex items-center gap-2 overflow-x-auto">
+        <div className="flex items-center gap-2 overflow-x-auto">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
             Songs:
           </span>
@@ -552,7 +579,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
             <button
               key={s.id}
               onClick={() => handlePlaySample(s.id)}
-              className="px-2.5 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-medium transition shrink-0 backdrop-blur"
+              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-200 hover:text-white text-xs font-medium transition shrink-0 shadow-sm"
             >
               ▶ {s.title}
             </button>
@@ -560,20 +587,91 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         </div>
       </div>
 
-      {/* 88-Key Interactive Piano Keyboard Container */}
+      {/* Main Piano Studio Scroll Container (Holds both Visualizer Canvas and Keyboard!) */}
       <div
         ref={keyboardScrollRef}
         onMouseDown={() => setIsMouseDown(true)}
         onMouseUp={() => setIsMouseDown(false)}
-        className="w-full bg-[#0a0d14] border-t border-slate-800 overflow-x-auto overflow-y-hidden shadow-2xl py-4 px-6"
+        className="flex-1 w-full bg-[#070b14] overflow-x-auto overflow-y-hidden shadow-inner py-4 px-6 flex flex-col justify-end"
         style={{ scrollbarWidth: "thin" }}
       >
-        <div className="relative inline-flex h-56 min-w-max select-none pb-2 pt-1">
-          {ALL_88_KEYS.map((key) => {
-            const isActive = activeMidiKeys.has(key.midi);
+        <div className="relative inline-flex flex-col select-none mx-auto" style={{ width: TOTAL_PIANO_WIDTH }}>
+          {/* Visualizer Lanes Canvas (exact same width as keys: 2288px!) */}
+          <div className="relative w-[2288px] h-52 sm:h-64 overflow-hidden rounded-t-xl bg-[#020409] border-t border-x border-slate-800/80 shadow-2xl">
+            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" width={TOTAL_PIANO_WIDTH} height={240} />
 
-            // Black Key
-            if (key.isBlack) {
+            {/* Ambient center watermark / prompt */}
+            {!isPlayingSong && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-xs uppercase tracking-widest font-bold text-slate-600/40">
+                  Virtual Piano Studio • Web MIDI & QWERTY Keyboard
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Horizon glow bar right at the key top */}
+          <div className="w-[2288px] h-[3px] bg-gradient-to-r from-sky-500/20 via-sky-400 to-sky-500/20 shadow-md shadow-cyan-400/50 relative z-30" />
+
+          {/* Piano Keyboard (exactly 2288px wide: 52 white keys * 44px) */}
+          <div className="relative h-56 w-[2288px] select-none pt-0.5">
+            {ALL_88_KEYS.map((key) => {
+              const isActive = activeMidiKeys.has(key.midi);
+              const geom = KEY_GEOMETRY_MAP.get(key.midi)!;
+
+              // Black Key
+              if (key.isBlack) {
+                const showShortcut = (labelMode === "shortcuts" || labelMode === "both") && key.shortcut;
+                const showNote = labelMode === "notes" || labelMode === "both";
+
+                return (
+                  <div
+                    key={key.midi}
+                    id={`key-${key.midi}`}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      triggerNoteOn(key.midi);
+                    }}
+                    onMouseUp={() => triggerNoteOff(key.midi)}
+                    onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
+                    onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
+                    className={`absolute z-20 w-7 h-36 rounded-b-md transition-all duration-75 cursor-pointer shadow-lg flex flex-col justify-between items-center py-2 ${
+                      isActive
+                        ? "bg-gradient-to-b from-sky-400 to-indigo-600 shadow-cyan-500/50 scale-[0.98] ring-2 ring-cyan-300"
+                        : "bg-gradient-to-b from-slate-900 via-slate-950 to-black hover:from-slate-800 hover:to-slate-900 border-x border-b border-slate-700/60"
+                    }`}
+                    style={{ left: `${geom.left}px` }}
+                  >
+                    {/* Top section: Keyboard Shortcut (if visible) */}
+                    <div className="h-4 flex items-center justify-center">
+                      {showShortcut && (
+                        <span
+                          className={`text-[9px] font-bold font-mono px-1 rounded ${
+                            isActive ? "text-white bg-black/40" : "text-slate-400 bg-slate-800/80"
+                          }`}
+                        >
+                          {key.shortcut}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom section: Note Name (if visible) */}
+                    <div className="h-4 flex items-center justify-center">
+                      {showNote && (
+                        <span
+                          className={`text-[8px] font-mono ${
+                            isActive ? "text-cyan-100 font-bold" : "text-slate-400"
+                          }`}
+                        >
+                          {key.noteName}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              // White Key
               const showShortcut = (labelMode === "shortcuts" || labelMode === "both") && key.shortcut;
               const showNote = labelMode === "notes" || labelMode === "both";
 
@@ -581,28 +679,23 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                 <div
                   key={key.midi}
                   id={`key-${key.midi}`}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    triggerNoteOn(key.midi);
-                  }}
+                  onMouseDown={() => triggerNoteOn(key.midi)}
                   onMouseUp={() => triggerNoteOff(key.midi)}
                   onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
                   onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
-                  className={`absolute z-20 w-7 h-36 -ml-3.5 rounded-b-md transition-all duration-75 cursor-pointer shadow-lg flex flex-col justify-between items-center py-2 ${
+                  className={`absolute z-10 w-11 h-52 rounded-b-lg border-x border-b transition-all duration-75 cursor-pointer flex flex-col justify-between items-center py-3 ${
                     isActive
-                      ? "bg-gradient-to-b from-sky-400 to-indigo-600 shadow-cyan-500/50 scale-[0.98] ring-2 ring-cyan-300"
-                      : "bg-gradient-to-b from-slate-900 via-slate-950 to-black hover:from-slate-800 hover:to-slate-900 border-x border-b border-slate-700/60"
+                      ? "bg-gradient-to-b from-sky-100 to-sky-300 border-sky-400 shadow-md shadow-sky-400/50 scale-[0.99]"
+                      : "bg-gradient-to-b from-slate-100 via-white to-slate-200 hover:from-white hover:to-slate-100 border-slate-300 shadow-sm"
                   }`}
-                  style={{
-                    left: `${getBlackKeyLeftOffset(key.midi)}px`,
-                  }}
+                  style={{ left: `${geom.left}px` }}
                 >
-                  {/* Top section: Keyboard Shortcut (if visible) */}
-                  <div className="h-4 flex items-center justify-center">
+                  {/* Upper section: QWERTY keyboard shortcut */}
+                  <div className="h-5 flex items-center justify-center">
                     {showShortcut && (
                       <span
-                        className={`text-[9px] font-bold font-mono px-1 rounded ${
-                          isActive ? "text-white bg-black/40" : "text-slate-400 bg-slate-800/80"
+                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                          isActive ? "bg-sky-600 text-white" : "bg-slate-200/90 text-slate-700"
                         }`}
                       >
                         {key.shortcut}
@@ -610,12 +703,12 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                     )}
                   </div>
 
-                  {/* Bottom section: Note Name (if visible) */}
-                  <div className="h-4 flex items-center justify-center">
+                  {/* Lower section: Musical Note Name (e.g. C4, D4, E4) */}
+                  <div className="h-5 flex items-center justify-center">
                     {showNote && (
                       <span
-                        className={`text-[8px] font-mono ${
-                          isActive ? "text-cyan-100 font-bold" : "text-slate-400"
+                        className={`text-[11px] font-semibold ${
+                          isActive ? "text-sky-950 font-bold" : "text-slate-600"
                         }`}
                       >
                         {key.noteName}
@@ -624,69 +717,10 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
                   </div>
                 </div>
               );
-            }
-
-            // White Key
-            const showShortcut = (labelMode === "shortcuts" || labelMode === "both") && key.shortcut;
-            const showNote = labelMode === "notes" || labelMode === "both";
-
-            return (
-              <div
-                key={key.midi}
-                id={`key-${key.midi}`}
-                onMouseDown={() => triggerNoteOn(key.midi)}
-                onMouseUp={() => triggerNoteOff(key.midi)}
-                onMouseEnter={() => isMouseDown && triggerNoteOn(key.midi)}
-                onMouseLeave={() => isActive && triggerNoteOff(key.midi)}
-                className={`relative z-10 w-11 h-52 rounded-b-lg border-x border-b transition-all duration-75 cursor-pointer flex flex-col justify-between items-center py-3 ${
-                  isActive
-                    ? "bg-gradient-to-b from-sky-100 to-sky-300 border-sky-400 shadow-md shadow-sky-400/50 scale-[0.99]"
-                    : "bg-gradient-to-b from-slate-100 via-white to-slate-200 hover:from-white hover:to-slate-100 border-slate-300 shadow-sm"
-                }`}
-              >
-                {/* Upper section: QWERTY keyboard shortcut */}
-                <div className="h-5 flex items-center justify-center">
-                  {showShortcut && (
-                    <span
-                      className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                        isActive ? "bg-sky-600 text-white" : "bg-slate-200/90 text-slate-700"
-                      }`}
-                    >
-                      {key.shortcut}
-                    </span>
-                  )}
-                </div>
-
-                {/* Lower section: Musical Note Name (e.g. C4, D4, E4) */}
-                <div className="h-5 flex items-center justify-center">
-                  {showNote && (
-                    <span
-                      className={`text-[11px] font-semibold ${
-                        isActive ? "text-sky-950 font-bold" : "text-slate-600"
-                      }`}
-                    >
-                      {key.noteName}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+            })}
+          </div>
         </div>
       </div>
     </div>
   );
-}
-
-// Helper to compute exact horizontal pixel alignment for black keys
-function getBlackKeyLeftOffset(blackMidi: number): number {
-  let whiteCountBefore = 0;
-  for (let m = 21; m < blackMidi; m++) {
-    const name = NOTE_NAMES[m % 12];
-    if (!name.includes("#")) {
-      whiteCountBefore++;
-    }
-  }
-  const whiteKeyWidth = 44; // 11rem / 44px
-  return whiteCountBefore * whiteKeyWidth;
 }
