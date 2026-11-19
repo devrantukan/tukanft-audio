@@ -296,7 +296,7 @@ function StudioApp() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-screen w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
       {/* Lacuna-style Studio Sidebar */}
       <Sidebar
         activeTool={activeTool}
@@ -338,11 +338,10 @@ function StudioApp() {
             {activeTool === "midi-to-sheet" && scoreData && (
               <button
                 onClick={() => setShowControls(!showControls)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition flex items-center gap-1.5 ${
-                  showControls
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition flex items-center gap-1.5 ${showControls
                     ? "bg-slate-800 text-slate-200 border-slate-700"
                     : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-                }`}
+                  }`}
                 title="Toggle analysis & transformation controls"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

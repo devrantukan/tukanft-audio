@@ -100,14 +100,16 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
   const keyboardScrollRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Auto center scroll on Middle C (C4 = MIDI 60)
+  // Auto center scroll on Middle C (C4 = MIDI 60) strictly inside keyboard container
   useEffect(() => {
     if (keyboardScrollRef.current) {
+      const container = keyboardScrollRef.current;
       const c4Element = document.getElementById("key-60");
       if (c4Element) {
-        c4Element.scrollIntoView({ inline: "center", behavior: "smooth" });
+        const offset = c4Element.offsetLeft - container.clientWidth / 2 + c4Element.clientWidth / 2;
+        container.scrollTo({ left: Math.max(0, offset), behavior: "smooth" });
       } else {
-        keyboardScrollRef.current.scrollLeft = keyboardScrollRef.current.scrollWidth * 0.38;
+        container.scrollLeft = container.scrollWidth * 0.38;
       }
     }
   }, []);

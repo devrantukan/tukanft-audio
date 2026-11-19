@@ -8,7 +8,14 @@
   body {
     background-color: #0b0f19;
     color: #f1f5f9;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Custom scrollbars for studio panels */
