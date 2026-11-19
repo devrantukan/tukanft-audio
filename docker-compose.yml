@@ -1,0 +1,34 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - sessions_data:/app/.sessions
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8088:8088"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/api/samples"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - API_INTERNAL_URL=http://api:8088
+    ports:
+      - "3000:3000"
+
+volumes:
+  sessions_data:

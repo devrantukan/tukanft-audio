@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#grad)"/>
+  <!-- Staff lines -->
+  <line x1="12" y1="20" x2="52" y2="20" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="12" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="12" y1="32" x2="52" y2="32" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="12" y1="38" x2="52" y2="38" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="12" y1="44" x2="52" y2="44" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <!-- Musical note pair -->
+  <circle cx="24" cy="40" r="5" fill="#FFFFFF"/>
+  <circle cx="42" cy="34" r="5" fill="#FFFFFF"/>
+  <rect x="27" y="16" width="3" height="24" fill="#FFFFFF"/>
+  <rect x="45" y="10" width="3" height="24" fill="#FFFFFF"/>
+  <polygon points="27,16 48,10 48,15 27,21" fill="#FFFFFF"/>
+</svg>
