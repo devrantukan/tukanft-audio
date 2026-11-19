@@ -51,7 +51,7 @@ export default function SidebarControls({
   const maxCount = Math.max(...Object.values(distribution), 1);
 
   return (
-    <div className="w-80 h-full bg-slate-900 border-r border-slate-800 flex flex-col justify-between overflow-y-auto p-4 text-slate-200">
+    <div className="w-full md:w-80 max-h-[45vh] md:max-h-none shrink-0 md:shrink md:h-full bg-slate-900 border-b md:border-b-0 border-r border-slate-800 flex flex-col justify-between overflow-y-auto p-4 text-slate-200">
       <div className="space-y-5">
         {/* Header & Key Signature */}
         <div>

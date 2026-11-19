@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar, { ActiveToolType } from "@/components/Sidebar";
 import Toolbar from "@/components/Toolbar";
 import SidebarControls from "@/components/SidebarControls";
@@ -20,16 +20,8 @@ function StudioApp() {
 
   // Sidebar collapsed state (initialized to false to prevent Next.js SSR hydration mismatch)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const isDesktopLayout = useSyncExternalStore(
-    (onStoreChange) => {
-      const mq = window.matchMedia("(min-width: 1024px)");
-      mq.addEventListener("change", onStoreChange);
-      return () => mq.removeEventListener("change", onStoreChange);
-    },
-    () => window.matchMedia("(min-width: 1024px)").matches,
-    () => false
-  );
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
     try {
@@ -38,6 +30,18 @@ function StudioApp() {
         setIsSidebarCollapsed(true);
       }
     } catch (e) {}
+  }, []);
+
+  // Track mobile vs desktop and close the drawer when leaving mobile layout
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const onChange = () => {
+      setIsMobileViewport(mq.matches);
+      if (!mq.matches) setIsMobileSidebarOpen(false);
+    };
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   const toggleSidebarCollapse = () => {
@@ -328,18 +332,18 @@ function StudioApp() {
   };
 
   const handleHeaderMenuClick = () => {
-    if (isDesktopLayout) {
-      toggleSidebarCollapse();
+    if (isMobileViewport) {
+      setIsMobileSidebarOpen((open) => !open);
     } else {
-      setIsMobileNavOpen((open) => !open);
+      toggleSidebarCollapse();
     }
   };
 
   return (
     <div className="flex h-[100dvh] w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
       <Sidebar
-        isOpen={isDesktopLayout || isMobileNavOpen}
-        onClose={() => setIsMobileNavOpen(false)}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleSidebarCollapse}
         activeTool={activeTool}
@@ -355,8 +359,15 @@ function StudioApp() {
             <button
               onClick={handleHeaderMenuClick}
               className="w-10 h-10 shrink-0 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition focus:outline-none flex items-center justify-center"
-              title={isDesktopLayout ? (isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar") : "Open menu"}
+              title={
+                isMobileViewport
+                  ? "Open navigation menu"
+                  : isSidebarCollapsed
+                    ? "Expand sidebar"
+                    : "Collapse sidebar"
+              }
               aria-label="Toggle navigation"
+              aria-expanded={isMobileViewport ? isMobileSidebarOpen : undefined}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
@@ -480,7 +491,7 @@ function StudioApp() {
               </div>
             )}
 
-            <div className="flex-1 flex min-h-0 relative overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden">
               {scoreData && showControls && (
                 <SidebarControls
                   metadata={scoreData.metadata}
