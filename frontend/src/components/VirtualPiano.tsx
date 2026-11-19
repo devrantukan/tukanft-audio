@@ -739,6 +739,8 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         ref={keyboardScrollRef}
         onMouseDown={() => setIsMouseDown(true)}
         onMouseUp={() => setIsMouseDown(false)}
+        onTouchStart={() => setIsMouseDown(true)}
+        onTouchEnd={() => setIsMouseDown(false)}
         className="flex-1 min-h-0 w-full bg-[#070b14] overflow-x-auto overflow-y-auto sm:overflow-y-hidden shadow-inner py-2 sm:py-4 px-3 sm:px-6 flex flex-col justify-end touch-pan-x"
         style={{ scrollbarWidth: "thin", WebkitOverflowScrolling: "touch" }}
       >

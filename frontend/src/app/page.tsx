@@ -366,6 +366,7 @@ function StudioApp() {
                     : "Collapse sidebar"
               }
               aria-label="Toggle sidebar"
+              aria-expanded={isMobileViewport ? isMobileSidebarOpen : undefined}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
@@ -486,7 +487,7 @@ function StudioApp() {
               </div>
             )}
 
-            <div className="flex-1 flex min-h-0 relative overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden">
               {scoreData && showControls && (
                 <SidebarControls
                   metadata={scoreData.metadata}
