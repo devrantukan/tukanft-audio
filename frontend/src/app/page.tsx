@@ -18,6 +18,31 @@ function StudioApp() {
   // Active Tool View
   const [activeTool, setActiveTool] = useState<ActiveToolType>("midi-to-sheet");
 
+  // Sidebar collapsed state with localStorage persistence
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("tukanft_sidebar_collapsed");
+        return saved === "true";
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("tukanft_sidebar_collapsed", String(next));
+        } catch (e) {}
+      }
+      return next;
+    });
+  };
+
   // Score state
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
   const [samples, setSamples] = useState<SampleInfo[]>([]);
@@ -299,6 +324,8 @@ function StudioApp() {
     <div className="flex h-screen w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
       {/* Lacuna-style Studio Sidebar */}
       <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapse}
         activeTool={activeTool}
         onSelectTool={(tool) => setActiveTool(tool)}
         onSelectActiveTool={() => setActiveTool("midi-to-sheet")}
@@ -309,6 +336,16 @@ function StudioApp() {
         {/* Top Navbar Header */}
         <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
+            <button
+              onClick={toggleSidebarCollapse}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus:outline-none"
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label="Toggle sidebar"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </button>
             <h1 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span>{activeTool === "virtual-piano" ? "Virtual Piano Simulator" : "MIDI to Sheet Music"}</span>
               <span className="hidden sm:inline px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-rose-600/20 text-rose-400 border border-rose-500/30">
@@ -339,8 +376,8 @@ function StudioApp() {
               <button
                 onClick={() => setShowControls(!showControls)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition flex items-center gap-1.5 ${showControls
-                    ? "bg-slate-800 text-slate-200 border-slate-700"
-                    : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
+                  ? "bg-slate-800 text-slate-200 border-slate-700"
+                  : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
                   }`}
                 title="Toggle analysis & transformation controls"
               >
