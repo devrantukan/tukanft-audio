@@ -118,6 +118,23 @@ function generate88Keys(): PianoKeyData[] {
 
 const ALL_88_KEYS = generate88Keys();
 
+interface NoteBlock {
+  id: number;
+  midi: number;
+  bottom: number;
+  height: number;
+  active: boolean;
+}
+
+interface SplashParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  alpha: number;
+}
+
 export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: VirtualPianoProps) {
   const [player] = useState<MidiAudioPlayer>(() => new MidiAudioPlayer());
   const [activeMidiKeys, setActiveMidiKeys] = useState<Set<number>>(new Set());
@@ -137,6 +154,35 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
   const keyboardScrollRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const activeMidiKeysRef = useRef<Set<number>>(activeMidiKeys);
+
+  // Waterfall note block and sparkle particles state (Pianovera / Synthesia note engine)
+  const noteBlocksRef = useRef<NoteBlock[]>([]);
+  const particlesRef = useRef<SplashParticle[]>([]);
+  const nextBlockIdRef = useRef<number>(1);
+  const prevSongKeysRef = useRef<Set<number>>(new Set());
+
+  const startNoteBlock = useCallback((midi: number) => {
+    for (const b of noteBlocksRef.current) {
+      if (b.midi === midi && b.active) {
+        b.active = false;
+      }
+    }
+    noteBlocksRef.current.push({
+      id: nextBlockIdRef.current++,
+      midi,
+      bottom: 0,
+      height: 6,
+      active: true,
+    });
+  }, []);
+
+  const endNoteBlock = useCallback((midi: number) => {
+    for (const b of noteBlocksRef.current) {
+      if (b.midi === midi && b.active) {
+        b.active = false;
+      }
+    }
+  }, []);
 
   useEffect(() => {
     activeMidiKeysRef.current = activeMidiKeys;
@@ -195,26 +241,28 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
   const triggerNoteOn = useCallback(
     (midi: number, vel: number = 0.8) => {
       player.playNote(midi, vel);
+      startNoteBlock(midi);
       setActiveMidiKeys((prev) => {
         const next = new Set(prev);
         next.add(midi);
         return next;
       });
     },
-    [player]
+    [player, startNoteBlock]
   );
 
   // Release a note
   const triggerNoteOff = useCallback(
     (midi: number) => {
       player.releaseNote(midi);
+      endNoteBlock(midi);
       setActiveMidiKeys((prev) => {
         const next = new Set(prev);
         next.delete(midi);
         return next;
       });
     },
-    [player]
+    [player, endNoteBlock]
   );
 
   // Handle hardware MIDI input messages
@@ -276,8 +324,13 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
     if (!ctx) return;
 
     let animId: number;
+    let lastTime = performance.now();
+    const SPEED = 145; // waterfall block speed in pixels per second
 
-    const render = () => {
+    const render = (time: number) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.05) || 0.016;
+      lastTime = time;
+
       const dpr = window.devicePixelRatio || 1;
       const displayWidth = TOTAL_PIANO_WIDTH; // exactly 2288px
       const displayHeight = 240;
@@ -334,46 +387,103 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
         }
       });
 
-      // 3. Falling light waterfall beams for active keys (100% physically aligned to key position)
+      // 3. Update & Draw Waterfall Note Blocks (Pianovera discrete key press/release pills)
+      const blocks = noteBlocksRef.current;
+      for (let i = blocks.length - 1; i >= 0; i--) {
+        const b = blocks[i];
+        if (b.active) {
+          b.height += SPEED * dt;
+        } else {
+          b.bottom += SPEED * dt;
+        }
+
+        if (b.bottom > displayHeight) {
+          blocks.splice(i, 1);
+          continue;
+        }
+
+        const geom = KEY_GEOMETRY_MAP.get(b.midi);
+        if (!geom) continue;
+
+        const blockWidth = Math.max(8, geom.width - 6);
+        const x = geom.centerX - blockWidth / 2;
+        const y = displayHeight - (b.bottom + b.height);
+        const h = Math.max(6, b.height);
+        const radius = Math.min(6, blockWidth / 2, h / 2);
+
+        ctx.save();
+        ctx.shadowColor = "rgba(56, 189, 248, 0.8)";
+        ctx.shadowBlur = 10;
+
+        // Gradient for note block
+        const blockGrad = ctx.createLinearGradient(x, y, x + blockWidth, y + h);
+        blockGrad.addColorStop(0, "rgba(56, 189, 248, 0.95)");
+        blockGrad.addColorStop(0.5, "rgba(99, 102, 241, 0.9)");
+        blockGrad.addColorStop(1, "rgba(56, 189, 248, 0.85)");
+        ctx.fillStyle = blockGrad;
+
+        ctx.beginPath();
+        if (typeof (ctx as any).roundRect === "function") {
+          (ctx as any).roundRect(x, y, blockWidth, h, radius);
+        } else {
+          ctx.rect(x, y, blockWidth, h);
+        }
+        ctx.fill();
+
+        // Inner specular highlight
+        if (h > 10 && blockWidth > 8) {
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = "rgba(224, 242, 254, 0.65)";
+          const coreW = blockWidth * 0.45;
+          const coreH = Math.max(4, h - 8);
+          ctx.beginPath();
+          if (typeof (ctx as any).roundRect === "function") {
+            (ctx as any).roundRect(x + (blockWidth - coreW) / 2, y + 4, coreW, coreH, radius * 0.5);
+          } else {
+            ctx.rect(x + (blockWidth - coreW) / 2, y + 4, coreW, coreH);
+          }
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      // 4. Spawn & update particles at the base of active keys
       const currentActive = activeMidiKeysRef.current;
       currentActive.forEach((midi) => {
         const geom = KEY_GEOMETRY_MAP.get(midi);
-        if (geom) {
-          const x = geom.centerX;
-          const width = geom.width;
-
-          // Main vertical light beam
-          const beamGrad = ctx.createLinearGradient(0, displayHeight, 0, 0);
-          beamGrad.addColorStop(0, "rgba(56, 189, 248, 0.95)");
-          beamGrad.addColorStop(0.2, "rgba(56, 189, 248, 0.65)");
-          beamGrad.addColorStop(0.55, "rgba(99, 102, 241, 0.3)");
-          beamGrad.addColorStop(1, "rgba(99, 102, 241, 0)");
-
-          ctx.fillStyle = beamGrad;
-          ctx.fillRect(geom.left, 0, width, displayHeight);
-
-          // Core bright center streak
-          const coreGrad = ctx.createLinearGradient(0, displayHeight, 0, 0);
-          coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-          coreGrad.addColorStop(0.15, "rgba(224, 242, 254, 0.7)");
-          coreGrad.addColorStop(0.5, "rgba(186, 230, 253, 0)");
-          ctx.fillStyle = coreGrad;
-          ctx.fillRect(x - width * 0.2, 0, width * 0.4, displayHeight);
-
-          // Landing pad glow right at the key surface
-          const glowGrad = ctx.createRadialGradient(x, displayHeight, 0, x, displayHeight, width * 1.1);
-          glowGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
-          glowGrad.addColorStop(0.25, "rgba(56, 189, 248, 0.95)");
-          glowGrad.addColorStop(0.65, "rgba(56, 189, 248, 0.35)");
-          glowGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
-          ctx.fillStyle = glowGrad;
-          ctx.beginPath();
-          ctx.ellipse(x, displayHeight, width * 0.85, 10, 0, 0, Math.PI * 2);
-          ctx.fill();
+        if (geom && Math.random() < 0.65) {
+          particlesRef.current.push({
+            x: geom.centerX + (Math.random() - 0.5) * (geom.width * 0.7),
+            y: displayHeight - 4,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: -(Math.random() * 2.2 + 1.2),
+            radius: Math.random() * 2.2 + 1.2,
+            alpha: 1,
+          });
         }
       });
 
-      // 4. Horizon line glow
+      const particles = particlesRef.current;
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.035;
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(186, 230, 253, ${Math.max(0, p.alpha)})`;
+        ctx.shadowColor = "rgba(56, 189, 248, 0.9)";
+        ctx.shadowBlur = 6;
+        ctx.fill();
+      }
+
+      // 5. Horizon line glow right above the keys
       ctx.beginPath();
       ctx.moveTo(0, displayHeight - 1);
       ctx.lineTo(displayWidth, displayHeight - 1);
@@ -386,7 +496,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
       animId = requestAnimationFrame(render);
     };
 
-    render();
+    animId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animId);
   }, []);
 
@@ -412,12 +522,30 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
             activeNow.add(ev.midi);
           }
         }
+
+        // Stream discrete note blocks for each key press & release in song
+        const prev = prevSongKeysRef.current;
+        for (const midi of activeNow) {
+          if (!prev.has(midi)) {
+            startNoteBlock(midi);
+          }
+        }
+        for (const midi of prev) {
+          if (!activeNow.has(midi)) {
+            endNoteBlock(midi);
+          }
+        }
+        prevSongKeysRef.current = activeNow;
         setActiveMidiKeys(activeNow);
       };
 
       player.onStateChangeCallback = (state) => {
         if (state === "stopped") {
           setIsPlayingSong(false);
+          for (const b of noteBlocksRef.current) {
+            b.active = false;
+          }
+          prevSongKeysRef.current = new Set();
           setActiveMidiKeys(new Set());
         }
       };
@@ -432,6 +560,10 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
   const handleStopSong = () => {
     player.stop();
     setIsPlayingSong(false);
+    for (const b of noteBlocksRef.current) {
+      b.active = false;
+    }
+    prevSongKeysRef.current = new Set();
     setActiveMidiKeys(new Set());
     setActiveSongTitle(null);
   };
