@@ -23,6 +23,16 @@ export default function ScoreViewer({
   const [renderError, setRenderError] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
 
+  // Keep a stable ref to onOsmdReady to prevent render loops
+  const onOsmdReadyRef = useRef(onOsmdReady);
+  useEffect(() => {
+    onOsmdReadyRef.current = onOsmdReady;
+  }, [onOsmdReady]);
+
+  // Keep track of current zoom without re-running full init
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+
   // Initialize and render OSMD
   const initScore = useCallback(async () => {
     if (!containerRef.current || !musicXml) return;
@@ -52,7 +62,7 @@ export default function ScoreViewer({
       osmdRef.current = osmd;
 
       await osmd.load(musicXml);
-      osmd.zoom = zoom;
+      osmd.zoom = zoomRef.current;
       osmd.render();
 
       if (osmd.cursor) {
@@ -60,8 +70,8 @@ export default function ScoreViewer({
         osmd.cursor.reset();
       }
 
-      if (onOsmdReady) {
-        onOsmdReady(osmd);
+      if (onOsmdReadyRef.current) {
+        onOsmdReadyRef.current(osmd);
       }
     } catch (err: any) {
       console.error("OSMD render error:", err);
@@ -69,9 +79,9 @@ export default function ScoreViewer({
     } finally {
       setIsRendering(false);
     }
-  }, [musicXml, layoutMode, onOsmdReady]);
+  }, [musicXml, layoutMode]);
 
-  // Re-run on musicXml or layoutMode change
+  // Re-run ONLY when musicXml or layoutMode changes
   useEffect(() => {
     initScore();
   }, [initScore]);

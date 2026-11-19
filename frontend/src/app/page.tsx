@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import Toolbar from "@/components/Toolbar";
 import SidebarControls from "@/components/SidebarControls";
@@ -214,10 +214,10 @@ export default function Home() {
   };
 
   // OSMD ready hook
-  const handleOsmdReady = (osmd: any) => {
+  const handleOsmdReady = useCallback((osmd: any) => {
     osmdInstanceRef.current = osmd;
     player.osmd = osmd;
-  };
+  }, [player]);
 
   // Sound and instrument change
   const handleInstrumentChange = (newInst: InstrumentType) => {
