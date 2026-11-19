@@ -99,6 +99,11 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
 
   const keyboardScrollRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeMidiKeysRef = useRef<Set<number>>(activeMidiKeys);
+
+  useEffect(() => {
+    activeMidiKeysRef.current = activeMidiKeys;
+  }, [activeMidiKeys]);
 
   // Auto center scroll on Middle C (C4 = MIDI 60) strictly inside keyboard container
   useEffect(() => {
@@ -228,7 +233,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
     };
   }, [triggerNoteOn, triggerNoteOff]);
 
-  // Setup visual canvas animation
+  // Setup visual canvas animation with 1:1 pixel alignment to piano keys
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -238,53 +243,115 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
     let animId: number;
 
     const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dpr = window.devicePixelRatio || 1;
+      const displayWidth = canvas.clientWidth;
+      const displayHeight = canvas.clientHeight;
 
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      if (displayWidth === 0 || displayHeight === 0) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+
+      const targetWidth = Math.round(displayWidth * dpr);
+      const targetHeight = Math.round(displayHeight * dpr);
+      if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      // Background gradient
+      ctx.clearRect(0, 0, displayWidth, displayHeight);
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, displayHeight);
       bgGrad.addColorStop(0, "#030712");
       bgGrad.addColorStop(0.7, "#0b0f19");
       bgGrad.addColorStop(1, "#020617");
       ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, displayWidth, displayHeight);
+
+      const canvasRect = canvas.getBoundingClientRect();
+
+      // Subtle Pianovera-style vertical track lane guidelines aligned with keys
+      const container = keyboardScrollRef.current;
+      const keysWrapper = container?.firstElementChild as HTMLElement | null;
+      if (keysWrapper) {
+        const keyNodes = keysWrapper.children;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i < keyNodes.length; i++) {
+          const el = keyNodes[i] as HTMLElement;
+          if (el && el.id && !el.id.includes("undefined")) {
+            const r = el.getBoundingClientRect();
+            const leftX = r.left - canvasRect.left;
+            if (leftX >= -20 && leftX <= displayWidth + 20) {
+              ctx.beginPath();
+              ctx.moveTo(leftX, 0);
+              ctx.lineTo(leftX, displayHeight);
+              ctx.stroke();
+            }
+          }
+        }
+      }
 
       // Horizon glow line above keys
       ctx.beginPath();
-      ctx.moveTo(0, canvas.height - 1);
-      ctx.lineTo(canvas.width, canvas.height - 1);
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
-      ctx.lineWidth = 2;
+      ctx.moveTo(0, displayHeight - 1);
+      ctx.lineTo(displayWidth, displayHeight - 1);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Light beams for active keys
-      activeMidiKeys.forEach((midi) => {
+      // Light waterfall beams for active keys (exact 1:1 horizontal alignment)
+      const currentActive = activeMidiKeysRef.current;
+      currentActive.forEach((midi) => {
         const keyEl = document.getElementById(`key-${midi}`);
-        if (keyEl && canvas) {
+        if (keyEl) {
           const rect = keyEl.getBoundingClientRect();
-          const canvasRect = canvas.getBoundingClientRect();
+          // Precise center and width in CSS pixel space (identical to ctx scaled by dpr)
           const x = rect.left - canvasRect.left + rect.width / 2;
-          const width = rect.width * 0.9;
+          const width = rect.width;
 
-          const beamGrad = ctx.createLinearGradient(0, canvas.height, 0, 0);
-          beamGrad.addColorStop(0, "rgba(56, 189, 248, 0.8)");
-          beamGrad.addColorStop(0.4, "rgba(99, 102, 241, 0.3)");
-          beamGrad.addColorStop(1, "rgba(244, 63, 94, 0)");
+          // Main vertical light beam
+          const beamGrad = ctx.createLinearGradient(0, displayHeight, 0, 0);
+          beamGrad.addColorStop(0, "rgba(56, 189, 248, 0.9)");
+          beamGrad.addColorStop(0.2, "rgba(56, 189, 248, 0.6)");
+          beamGrad.addColorStop(0.55, "rgba(99, 102, 241, 0.25)");
+          beamGrad.addColorStop(1, "rgba(99, 102, 241, 0)");
 
           ctx.fillStyle = beamGrad;
-          ctx.fillRect(x - width / 2, 0, width, canvas.height);
+          ctx.fillRect(x - width / 2, 0, width, displayHeight);
 
+          // Core bright center streak
+          const coreGrad = ctx.createLinearGradient(0, displayHeight, 0, 0);
+          coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+          coreGrad.addColorStop(0.15, "rgba(224, 242, 254, 0.65)");
+          coreGrad.addColorStop(0.5, "rgba(186, 230, 253, 0)");
+          ctx.fillStyle = coreGrad;
+          ctx.fillRect(x - width * 0.2, 0, width * 0.4, displayHeight);
+
+          // Landing pad glow right at the key surface
+          const glowGrad = ctx.createRadialGradient(x, displayHeight, 0, x, displayHeight, width * 1.1);
+          glowGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
+          glowGrad.addColorStop(0.25, "rgba(56, 189, 248, 0.95)");
+          glowGrad.addColorStop(0.65, "rgba(56, 189, 248, 0.35)");
+          glowGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+          ctx.fillStyle = glowGrad;
           ctx.beginPath();
-          ctx.arc(x, canvas.height - 2, width / 2, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(147, 197, 253, 0.9)";
+          ctx.ellipse(x, displayHeight, width * 0.85, 10, 0, 0, Math.PI * 2);
           ctx.fill();
         }
       });
+
+      ctx.restore();
 
       animId = requestAnimationFrame(render);
     };
 
     render();
     return () => cancelAnimationFrame(animId);
-  }, [activeMidiKeys]);
+  }, []);
 
   // Load and play a preloaded song
   const handlePlaySample = async (sampleId: string) => {
@@ -444,7 +511,7 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
 
       {/* Hero Visualizer Banner */}
       <div className="relative flex-1 min-h-[160px] max-h-[340px] w-full overflow-hidden flex flex-col justify-between">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" width={1600} height={340} />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
         {/* Ambient overlay info */}
         <div className="relative z-10 p-5 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
