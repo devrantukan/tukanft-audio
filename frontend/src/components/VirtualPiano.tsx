@@ -572,19 +572,43 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
 
   // Check for active score passed from other studios (Sheet to MIDI, Scanner, etc.)
   useEffect(() => {
+    let loaded = false;
     try {
       if (typeof window !== "undefined") {
-        const saved = sessionStorage.getItem("tukanft_active_score");
+        const saved =
+          sessionStorage.getItem("tukanft_active_score") ||
+          localStorage.getItem("tukanft_active_score");
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && parsed.playbackEvents && parsed.playbackEvents.length > 0) {
             playScoreData(parsed);
+            loaded = true;
             sessionStorage.removeItem("tukanft_active_score");
+            localStorage.removeItem("tukanft_active_score");
           }
         }
       }
     } catch (e) {
       console.warn("Could not load score from session:", e);
+    }
+
+    if (!loaded && typeof window !== "undefined") {
+      const urlSession = new URLSearchParams(window.location.search).get("session");
+      if (urlSession) {
+        fetch(`/api/session/${urlSession}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Session not found");
+            return res.json();
+          })
+          .then((data: ScoreData) => {
+            if (data && data.playbackEvents && data.playbackEvents.length > 0) {
+              playScoreData(data);
+            }
+          })
+          .catch((err) => {
+            console.warn("URL session load error:", err);
+          });
+      }
     }
   }, [playScoreData]);
 

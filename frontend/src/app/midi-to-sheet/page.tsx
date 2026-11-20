@@ -59,22 +59,50 @@ export default function MidiToSheetPage() {
 
   // Check for active score passed from other studios (Sheet to MIDI, Scanner, etc.)
   useEffect(() => {
+    let loaded = false;
     try {
       if (typeof window !== "undefined") {
-        const saved = sessionStorage.getItem("tukanft_active_score");
-        if (saved) {
-          const parsed = JSON.parse(saved);
+        const raw =
+          sessionStorage.getItem("tukanft_active_score") ||
+          localStorage.getItem("tukanft_active_score");
+        if (raw) {
+          const parsed = JSON.parse(raw);
           if (parsed && (parsed.musicXml || parsed.musicxml)) {
             if (!parsed.musicXml && parsed.musicxml) {
               parsed.musicXml = parsed.musicxml;
             }
             handleScoreLoaded(parsed);
+            loaded = true;
             sessionStorage.removeItem("tukanft_active_score");
+            localStorage.removeItem("tukanft_active_score");
           }
         }
       }
     } catch (e) {
-      console.warn("Could not load score from session:", e);
+      console.warn("Storage score load warning:", e);
+    }
+
+    if (!loaded && typeof window !== "undefined") {
+      const urlSession = new URLSearchParams(window.location.search).get("session");
+      if (urlSession) {
+        setIsLoading(true);
+        setStatusMessage("Loading shared score session...");
+        fetch(`/api/session/${urlSession}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Session not found");
+            return res.json();
+          })
+          .then((data: ScoreData) => {
+            handleScoreLoaded(data);
+          })
+          .catch((err) => {
+            console.warn("URL session load error:", err);
+          })
+          .finally(() => {
+            setIsLoading(false);
+            setStatusMessage(null);
+          });
+      }
     }
   }, []);
 

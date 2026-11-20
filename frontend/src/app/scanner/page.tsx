@@ -14,23 +14,29 @@ export default function ScannerPage() {
   const handleOpenScoreInSheetMusic = (data: ScoreData) => {
     try {
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("tukanft_active_score", JSON.stringify(data));
+        const json = JSON.stringify(data);
+        sessionStorage.setItem("tukanft_active_score", json);
+        localStorage.setItem("tukanft_active_score", json);
       }
     } catch (e) {
-      console.warn("SessionStorage save error:", e);
+      console.warn("Storage save error:", e);
     }
-    router.push("/midi-to-sheet");
+    const targetUrl = data.sessionId ? `/midi-to-sheet?session=${data.sessionId}` : "/midi-to-sheet";
+    router.push(targetUrl);
   };
 
   const handleOpenScoreInVirtualPiano = (data: ScoreData) => {
     try {
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("tukanft_active_score", JSON.stringify(data));
+        const json = JSON.stringify(data);
+        sessionStorage.setItem("tukanft_active_score", json);
+        localStorage.setItem("tukanft_active_score", json);
       }
     } catch (e) {
-      console.warn("SessionStorage save error:", e);
+      console.warn("Storage save error:", e);
     }
-    router.push("/virtual-piano");
+    const targetUrl = data.sessionId ? `/virtual-piano?session=${data.sessionId}` : "/virtual-piano";
+    router.push(targetUrl);
   };
 
   const headerActions = (

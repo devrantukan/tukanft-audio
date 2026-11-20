@@ -868,6 +868,25 @@ async def reprocess_score(
         raise HTTPException(status_code=422, detail=str(e))
 
 
+@app.get("/api/session/{session_id}")
+async def get_session_score(session_id: str):
+    contents = get_session_midi(session_id)
+    if not contents:
+        raise HTTPException(status_code=404, detail="Session expired or not found")
+    try:
+        result = process_midi_data(
+            midi_bytes=contents,
+            transpose_semitones=0,
+            quantize_mode="none",
+            split_grand_staff=False,
+            selected_part="all"
+        )
+        result["sessionId"] = session_id
+        return JSONResponse(content=result)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
 @app.post("/api/export/midi")
 async def export_midi(
     session_id: str = Form(...),
