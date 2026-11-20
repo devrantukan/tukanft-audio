@@ -510,27 +510,29 @@ function StudioApp() {
 
               <main className="flex-1 h-full min-w-0 relative">
                 {!scoreData && (
-                  <div className="studio-ambient h-full overflow-y-auto pb-safe flex flex-col items-center justify-center py-8 sm:py-12 px-safe">
-                    <div className="text-center mb-8 max-w-lg">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400/90 mb-3">
-                        Professional engraving
-                      </p>
-                      <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
-                        Transform MIDI into engraved sheet music
-                      </h2>
-                      <p className="text-sm sm:text-base text-slate-400 mt-3 leading-relaxed">
-                        Real-time playback, intelligent tuplet cleanup, automatic grand staff splitting, and export to MusicXML or MIDI.
-                      </p>
+                  <div className="studio-ambient h-full w-full overflow-y-auto flex flex-col items-center px-4 sm:px-6 py-6 sm:py-10">
+                    <div className="my-auto flex flex-col items-center w-full max-w-2xl py-2">
+                      <div className="text-center mb-6 max-w-lg">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400/90 mb-2">
+                          Professional engraving
+                        </p>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+                          Transform MIDI into engraved sheet music
+                        </h2>
+                        <p className="text-sm sm:text-base text-slate-400 mt-2 leading-relaxed">
+                          Real-time playback, intelligent tuplet cleanup, automatic grand staff splitting, and export to MusicXML or MIDI.
+                        </p>
+                      </div>
+                      <Dropzone
+                        onFileUpload={handleFileUpload}
+                        onSelectSample={handleSelectSample}
+                        samples={samples}
+                        isLoading={isLoading}
+                      />
+                      {statusMessage && (
+                        <p className="mt-6 text-sm text-slate-400 animate-pulse">{statusMessage}</p>
+                      )}
                     </div>
-                    <Dropzone
-                      onFileUpload={handleFileUpload}
-                      onSelectSample={handleSelectSample}
-                      samples={samples}
-                      isLoading={isLoading}
-                    />
-                    {statusMessage && (
-                      <p className="mt-6 text-sm text-slate-400 animate-pulse">{statusMessage}</p>
-                    )}
                   </div>
                 )}
 
