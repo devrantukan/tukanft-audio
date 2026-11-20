@@ -290,30 +290,30 @@ export default function LandingPage() {
           <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800/80">
               <span className="text-2xl mb-2 block">⚡</span>
-              <h4 className="text-sm font-bold text-white mb-1">Live Audio Engine</h4>
+              <h4 className="text-sm font-bold text-white mb-1">{t("featAudioEngineTitle")}</h4>
               <p className="text-xs text-slate-400">
-                100% real-time browser Web Audio synthesis with polyphonic piano, rhodes, strings, and organ.
+                {t("featAudioEngineDesc")}
               </p>
             </div>
             <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800/80">
               <span className="text-2xl mb-2 block">🎼</span>
-              <h4 className="text-sm font-bold text-white mb-1">OpenSheetMusicDisplay</h4>
+              <h4 className="text-sm font-bold text-white mb-1">{t("featOsmdTitle")}</h4>
               <p className="text-xs text-slate-400">
-                High-fidelity vector engraving with instant transposition, continuous/paged layouts, and printing.
+                {t("featOsmdDesc")}
               </p>
             </div>
             <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800/80">
               <span className="text-2xl mb-2 block">🌐</span>
-              <h4 className="text-sm font-bold text-white mb-1">6 Languages Supported</h4>
+              <h4 className="text-sm font-bold text-white mb-1">{t("featLanguagesTitle")}</h4>
               <p className="text-xs text-slate-400">
-                Seamless studio localization in English, Turkish, French, Spanish, German, and Italian.
+                {t("featLanguagesDesc")}
               </p>
             </div>
             <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800/80">
               <span className="text-2xl mb-2 block">📱</span>
-              <h4 className="text-sm font-bold text-white mb-1">Mobile & Camera Ready</h4>
+              <h4 className="text-sm font-bold text-white mb-1">{t("featMobileTitle")}</h4>
               <p className="text-xs text-slate-400">
-                WebRTC live camera scanning and responsive mobile layout engineered for creators on the go.
+                {t("featMobileDesc")}
               </p>
             </div>
           </div>
@@ -322,18 +322,18 @@ export default function LandingPage() {
         {/* Footer */}
         <footer className="shrink-0 border-t border-slate-800 py-8 px-4 sm:px-6 text-center text-xs text-slate-500">
           <p className="mb-2">
-            © {new Date().getFullYear()} Tukanft Audio. Built for musicians, producers, and arrangers worldwide.
+            © {new Date().getFullYear()} Tukanft Audio. {t("footerBuiltFor")}
           </p>
           <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400">
-            <Link href="/midi-to-sheet" className="hover:text-white transition">MIDI to Sheet</Link>
+            <Link href="/midi-to-sheet" className="hover:text-white transition">{t("midiToSheet")}</Link>
             <span>•</span>
-            <Link href="/virtual-piano" className="hover:text-white transition">Virtual Piano</Link>
+            <Link href="/virtual-piano" className="hover:text-white transition">{t("virtualPiano")}</Link>
             <span>•</span>
-            <Link href="/sheet-to-midi" className="hover:text-white transition">Sheet to MIDI</Link>
+            <Link href="/sheet-to-midi" className="hover:text-white transition">{t("sheetToMidi")}</Link>
             <span>•</span>
-            <Link href="/scanner" className="hover:text-white transition">Camera Scanner</Link>
+            <Link href="/scanner" className="hover:text-white transition">{t("scanner")}</Link>
             <span>•</span>
-            <Link href="/pricing" className="hover:text-white transition">Pricing</Link>
+            <Link href="/pricing" className="hover:text-white transition">{t("pricing")}</Link>
           </div>
         </footer>
       </div>

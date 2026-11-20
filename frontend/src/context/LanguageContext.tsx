@@ -168,6 +168,17 @@ export const TRANSLATIONS = {
     mp3ToMidiDesc: "Upload audio recordings (.mp3, .wav, .m4a) to transcribe polyphonic piano, vocal melodies, and basslines into clean, edit-ready MIDI.",
     aiMidiDesc: "Generate musical ideas, chord progressions, and melodic hooks directly from natural language prompts using deep generative music models.",
     midiEditorDesc: "In-browser multi-track piano roll editor. Draw notes, adjust velocity curves, snap to quantization grids, and export cleanly into sheet music.",
+
+    // Highlights & Footer
+    featAudioEngineTitle: "Live Audio Engine",
+    featAudioEngineDesc: "100% real-time browser Web Audio synthesis with polyphonic piano, rhodes, strings, and organ.",
+    featOsmdTitle: "OpenSheetMusicDisplay",
+    featOsmdDesc: "High-fidelity vector engraving with instant transposition, continuous/paged layouts, and printing.",
+    featLanguagesTitle: "6 Languages Supported",
+    featLanguagesDesc: "Seamless studio localization in English, Turkish, French, Spanish, German, and Italian.",
+    featMobileTitle: "Mobile & Camera Ready",
+    featMobileDesc: "WebRTC live camera scanning and responsive mobile layout engineered for creators on the go.",
+    footerBuiltFor: "Built for musicians, producers, and arrangers worldwide.",
   },
   tr: {
     proStudio: "PRO STÜDYO",
@@ -310,6 +321,17 @@ export const TRANSLATIONS = {
     mp3ToMidiDesc: "Ses kayıtlarını (.mp3, .wav, .m4a) yükleyin; polifonik piyano, vokal ve bas melodilerini düzenlenebilir temiz MIDI dosyalarına dönüştürün.",
     aiMidiDesc: "Doğal dildeki açıklamalardan polifonik besteler, akor dizilimleri ve melodik kancaları derin yapay zeka müzik modelleriyle anında üretin.",
     midiEditorDesc: "Tarayıcı içi çok kanallı piyano rulo (piano roll) editörü. Notalar çizin, tuşe hızlarını ayarlayın, ızgaraya hizalayın ve notaya dönüştürün.",
+
+    // Highlights & Footer
+    featAudioEngineTitle: "Canlı Ses Motoru",
+    featAudioEngineDesc: "Polifonik piyano, rhodes, yaylılar ve org ile %100 gerçek zamanlı tarayıcı içi Web Audio sentezi.",
+    featOsmdTitle: "Vektörel Nota Yazımı",
+    featOsmdDesc: "Anında transpoze, sürekli/sayfalı görünüm ve yazdırma desteğiyle yüksek kaliteli vektör nota gravürü.",
+    featLanguagesTitle: "6 Dil Desteği",
+    featLanguagesDesc: "Türkçe, İngilizce, Fransızca, İspanyolca, Almanca ve İtalyanca dillerinde kusursuz stüdyo deneyimi.",
+    featMobileTitle: "Mobil ve Kamera Uyumlu",
+    featMobileDesc: "Hareket halindeki müzisyenler için tasarlanmış WebRTC canlı kamera taraması ve duyarlı mobil arayüz.",
+    footerBuiltFor: "Dünya genelindeki müzisyenler, prodüktörler ve aranjörler için geliştirildi.",
   },
   fr: {
     proStudio: "STUDIO PRO",
@@ -452,6 +474,17 @@ export const TRANSLATIONS = {
     mp3ToMidiDesc: "Téléversez des enregistrements audio (.mp3, .wav, .m4a) pour transcrire le piano polyphonique, le chant et la basse en MIDI propre et prêt à l'édition.",
     aiMidiDesc: "Générez des idées musicales, des suites d'accords et des thèmes mélodiques à partir de descriptions textuelles grâce à l'IA générative musicale.",
     midiEditorDesc: "Éditeur piano roll multipiste dans le navigateur. Dessinez des notes, ajustez la vélocité, quantifiez et exportez directement en partition.",
+
+    // Highlights & Footer
+    featAudioEngineTitle: "Moteur Audio en Direct",
+    featAudioEngineDesc: "Synthèse Web Audio 100 % en temps réel dans le navigateur avec piano polyphonique, rhodes, cordes et orgue.",
+    featOsmdTitle: "Gravure Vectorielle OSMD",
+    featOsmdDesc: "Gravure vectorielle haute fidélité avec transposition instantanée, mise en page continue/paginée et impression.",
+    featLanguagesTitle: "6 Langues Disponibles",
+    featLanguagesDesc: "Studio traduit en français, anglais, turc, espagnol, allemand et italien.",
+    featMobileTitle: "Compatible Mobile & Caméra",
+    featMobileDesc: "Numérisation par caméra WebRTC et interface mobile réactive conçue pour les créateurs nomades.",
+    footerBuiltFor: "Conçu pour les musiciens, producteurs et arrangeurs du monde entier.",
   },
   es: {
     proStudio: "ESTUDIO PRO",
@@ -594,6 +627,17 @@ export const TRANSLATIONS = {
     mp3ToMidiDesc: "Sube grabaciones de audio (.mp3, .wav, .m4a) para transcribir piano polifónico, melodías vocales y bajos en MIDI listo para editar.",
     aiMidiDesc: "Genera ideas musicales, progresiones de acordes y temas melódicos a partir de lenguaje natural usando modelos generativos de música.",
     midiEditorDesc: "Editor piano roll multipista en el navegador. Dibuja notas, ajusta velocidades, cuantifica y exporta directamente a partituras.",
+
+    // Highlights & Footer
+    featAudioEngineTitle: "Motor de Audio en Vivo",
+    featAudioEngineDesc: "Síntesis Web Audio 100 % en tiempo real en el navegador con piano polifónico, rhodes, cuerdas y órgano.",
+    featOsmdTitle: "Grabado Vectorial OSMD",
+    featOsmdDesc: "Grabado vectorial de alta fidelidad con transposición instantánea, vistas continuas/paginadas e impresión.",
+    featLanguagesTitle: "6 Idiomas Disponibles",
+    featLanguagesDesc: "Estudio totalmente localizado en español, inglés, turco, francés, alemán e italiano.",
+    featMobileTitle: "Listo para Móvil y Cámara",
+    featMobileDesc: "Escaneo con cámara WebRTC y diseño móvil adaptativo pensado para creadores en movimiento.",
+    footerBuiltFor: "Creado para músicos, productores y arreglistas de todo el mundo.",
   },
   de: {
     proStudio: "PRO STUDIO",
@@ -736,6 +780,17 @@ export const TRANSLATIONS = {
     mp3ToMidiDesc: "Laden Sie Audioaufnahmen (.mp3, .wav, .m4a) hoch, um polyphones Klavier, Gesang und Bass in sauberes MIDI zu transkribieren.",
     aiMidiDesc: "Generieren Sie musikalische Ideen, Akkordfolgen und Hooklines direkt aus Textbeschreibungen mit generativen Musikmodellen.",
     midiEditorDesc: "Mehrspuriger Piano-Roll-Editor im Browser. Noten zeichnen, Anschlagstärke anpassen, quantisieren und als Notenblatt exportieren.",
+
+    // Highlights & Footer
+    featAudioEngineTitle: "Echtzeit-Audio-Engine",
+    featAudioEngineDesc: "100 % browserbasierte Web Audio-Synthese in Echtzeit mit polyphonem Klavier, Rhodes, Streichern und Orgel.",
+    featOsmdTitle: "Vektorbasiertes Notenbild",
+    featOsmdDesc: "Hochpräziser Vektor-Notensatz mit sofortiger Transposition, fortlaufendem/Seiten-Layout und Druckfunktion.",
+    featLanguagesTitle: "6 Sprachen Unterstützt",
+    featLanguagesDesc: "Nahtlose Lokalisierung auf Deutsch, Englisch, Türkisch, Französisch, Spanisch und Italienisch.",
+    featMobileTitle: "Mobil- & Kamera-Bereit",
+    featMobileDesc: "WebRTC-Kamerascann und responsives mobiles Design für Musiker und Notenschaffende unterwegs.",
+    footerBuiltFor: "Entwickelt für Musiker, Produzenten und Arrangeure weltweit.",
   },
   it: {
     proStudio: "STUDIO PRO",
@@ -878,6 +933,17 @@ export const TRANSLATIONS = {
     mp3ToMidiDesc: "Carica registrazioni audio (.mp3, .wav, .m4a) per trascrivere pianoforte polifonico, voci e linee di basso in MIDI pulito.",
     aiMidiDesc: "Genera idee musicali, progressioni di accordi e temi melodici direttamente da descrizioni testuali con modelli generativi di musica.",
     midiEditorDesc: "Editor piano roll multitraccia nel browser. Disegna note, regola la velocity, quantizza ed esporta direttamente in spartito.",
+
+    // Highlights & Footer
+    featAudioEngineTitle: "Motore Audio dal Vivo",
+    featAudioEngineDesc: "Sintesi Web Audio nel browser al 100% in tempo reale con pianoforte polifonico, rhodes, archi e organo.",
+    featOsmdTitle: "Incisione Vettoriale OSMD",
+    featOsmdDesc: "Incisione vettoriale ad alta fedeltà con trasposizione istantanea, layout continuo/a pagine e stampa.",
+    featLanguagesTitle: "6 Lingue Supportate",
+    featLanguagesDesc: "Localizzazione completa in italiano, inglese, turco, francese, spagnolo e tedesco.",
+    featMobileTitle: "Pronto per Mobile e Fotocamera",
+    featMobileDesc: "Scansione con fotocamera WebRTC e interfaccia mobile reattiva per i creatori in movimento.",
+    footerBuiltFor: "Creato per musicisti, produttori e arrangiatori in tutto il mondo.",
   },
 };
 
