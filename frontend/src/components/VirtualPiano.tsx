@@ -502,57 +502,98 @@ export default function VirtualPiano({ samples, onOpenScoreInSheetMusic }: Virtu
     return () => cancelAnimationFrame(animId);
   }, []);
 
+  // Play any loaded ScoreData (from OMR, Scanner, or MIDI)
+  const playScoreData = useCallback(
+    async (data: ScoreData) => {
+      try {
+        player.stop();
+        setIsPlayingSong(true);
+        setActiveSongTitle(data.metadata.title);
+        const totalDur =
+          data.metadata.durationSeconds ||
+          (data.playbackEvents.length > 0
+            ? data.playbackEvents[data.playbackEvents.length - 1].time + 2
+            : 10);
+        setSongDuration(totalDur);
+
+        player.loadEvents(
+          data.playbackEvents,
+          totalDur,
+          null,
+          data.metadata.tempoBpm || 120
+        );
+
+        player.onProgressCallback = (curr, dur) => {
+          setSongProgress(curr);
+          setSongDuration(dur);
+
+          const activeNow = new Set<number>();
+          for (const ev of data.playbackEvents) {
+            if (curr >= ev.time && curr <= ev.time + ev.duration) {
+              activeNow.add(ev.midi);
+            }
+          }
+
+          // Stream discrete note blocks for each key press & release in song
+          const prev = prevSongKeysRef.current;
+          for (const midi of activeNow) {
+            if (!prev.has(midi)) {
+              startNoteBlock(midi);
+            }
+          }
+          for (const midi of prev) {
+            if (!activeNow.has(midi)) {
+              endNoteBlock(midi);
+            }
+          }
+          prevSongKeysRef.current = activeNow;
+          setActiveMidiKeys(activeNow);
+        };
+
+        player.onStateChangeCallback = (state) => {
+          if (state === "stopped") {
+            setIsPlayingSong(false);
+            for (const b of noteBlocksRef.current) {
+              b.active = false;
+            }
+            prevSongKeysRef.current = new Set();
+            setActiveMidiKeys(new Set());
+          }
+        };
+
+        await player.play();
+      } catch (e: any) {
+        console.error("Failed to play score:", e);
+        setIsPlayingSong(false);
+      }
+    },
+    [player, startNoteBlock, endNoteBlock]
+  );
+
+  // Check for active score passed from other studios (Sheet to MIDI, Scanner, etc.)
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const saved = sessionStorage.getItem("tukanft_active_score");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.playbackEvents && parsed.playbackEvents.length > 0) {
+            playScoreData(parsed);
+            sessionStorage.removeItem("tukanft_active_score");
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load score from session:", e);
+    }
+  }, [playScoreData]);
+
   // Load and play a preloaded song
   const handlePlaySample = async (sampleId: string) => {
     try {
-      player.stop();
-      setIsPlayingSong(true);
       const res = await fetch(`/api/sample/${sampleId}`, { method: "POST" });
       const data: ScoreData = await res.json();
-      setActiveSongTitle(data.metadata.title);
-      setSongDuration(data.metadata.durationSeconds);
-
-      player.loadEvents(data.playbackEvents, data.metadata.durationSeconds, null, data.metadata.tempoBpm);
-
-      player.onProgressCallback = (curr, dur) => {
-        setSongProgress(curr);
-        setSongDuration(dur);
-
-        const activeNow = new Set<number>();
-        for (const ev of data.playbackEvents) {
-          if (curr >= ev.time && curr <= ev.time + ev.duration) {
-            activeNow.add(ev.midi);
-          }
-        }
-
-        // Stream discrete note blocks for each key press & release in song
-        const prev = prevSongKeysRef.current;
-        for (const midi of activeNow) {
-          if (!prev.has(midi)) {
-            startNoteBlock(midi);
-          }
-        }
-        for (const midi of prev) {
-          if (!activeNow.has(midi)) {
-            endNoteBlock(midi);
-          }
-        }
-        prevSongKeysRef.current = activeNow;
-        setActiveMidiKeys(activeNow);
-      };
-
-      player.onStateChangeCallback = (state) => {
-        if (state === "stopped") {
-          setIsPlayingSong(false);
-          for (const b of noteBlocksRef.current) {
-            b.active = false;
-          }
-          prevSongKeysRef.current = new Set();
-          setActiveMidiKeys(new Set());
-        }
-      };
-
-      await player.play();
+      await playScoreData(data);
     } catch (e: any) {
       alert("Failed to load song: " + e.message);
       setIsPlayingSong(false);

@@ -12,10 +12,24 @@ export default function SheetToMidiPage() {
   const router = useRouter();
 
   const handleOpenScoreInSheetMusic = (data: ScoreData) => {
+    try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("tukanft_active_score", JSON.stringify(data));
+      }
+    } catch (e) {
+      console.warn("SessionStorage save error:", e);
+    }
     router.push("/midi-to-sheet");
   };
 
   const handleOpenScoreInVirtualPiano = (data: ScoreData) => {
+    try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("tukanft_active_score", JSON.stringify(data));
+      }
+    } catch (e) {
+      console.warn("SessionStorage save error:", e);
+    }
     router.push("/virtual-piano");
   };
 

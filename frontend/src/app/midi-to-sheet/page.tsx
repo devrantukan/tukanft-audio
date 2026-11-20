@@ -57,6 +57,27 @@ export default function MidiToSheetPage() {
       .catch((err) => console.error("Failed to load sample registry:", err));
   }, []);
 
+  // Check for active score passed from other studios (Sheet to MIDI, Scanner, etc.)
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const saved = sessionStorage.getItem("tukanft_active_score");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && (parsed.musicXml || parsed.musicxml)) {
+            if (!parsed.musicXml && parsed.musicxml) {
+              parsed.musicXml = parsed.musicxml;
+            }
+            handleScoreLoaded(parsed);
+            sessionStorage.removeItem("tukanft_active_score");
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load score from session:", e);
+    }
+  }, []);
+
   // Synchronize playback cursor with score
   useEffect(() => {
     player.onProgressCallback = (time: number) => {
