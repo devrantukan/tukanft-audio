@@ -8,12 +8,15 @@ import ScoreViewer from "@/components/ScoreViewer";
 import Dropzone from "@/components/Dropzone";
 import VirtualPiano from "@/components/VirtualPiano";
 import LoginModal from "@/components/LoginModal";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 import { MidiAudioPlayer } from "@/lib/audioPlayer";
 import { ScoreData, SampleInfo, InstrumentType } from "@/types";
 
 function StudioApp() {
   const { user, openLoginModal } = useAuth();
+  const { t } = useLanguage();
 
   // Active Tool View
   const [activeTool, setActiveTool] = useState<ActiveToolType>("midi-to-sheet");
@@ -375,18 +378,21 @@ function StudioApp() {
             </button>
             <div className="min-w-0">
               <h1 className="text-sm sm:text-base font-bold text-white truncate">
-                {activeTool === "virtual-piano" ? "Virtual Piano" : "MIDI to Sheet Music"}
+                {activeTool === "virtual-piano" ? t("virtualPiano") : t("midiToSheet")}
               </h1>
               {activeTool === "midi-to-sheet" && scoreData && (
                 <p className="text-[11px] text-slate-500 truncate">{scoreData.metadata.title}</p>
               )}
             </div>
             <span className="hidden md:inline shrink-0 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-rose-600/15 text-rose-400 border border-rose-500/25">
-              Studio
+              {t("proStudio")}
             </span>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {!user && (
               <button
                 onClick={openLoginModal}
@@ -395,7 +401,7 @@ function StudioApp() {
                 <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-                <span className="hidden sm:inline">Sign In</span>
+                <span className="hidden sm:inline">{t("signIn")}</span>
               </button>
             )}
 
@@ -514,13 +520,13 @@ function StudioApp() {
                     <div className="my-auto flex flex-col items-center w-full max-w-2xl py-2">
                       <div className="text-center mb-6 max-w-lg">
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400/90 mb-2">
-                          Professional engraving
+                          {t("proEngraving")}
                         </p>
                         <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
-                          Transform MIDI into engraved sheet music
+                          {t("heroTitle")}
                         </h2>
                         <p className="text-sm sm:text-base text-slate-400 mt-2 leading-relaxed">
-                          Real-time playback, intelligent tuplet cleanup, automatic grand staff splitting, and export to MusicXML or MIDI.
+                          {t("heroDesc")}
                         </p>
                       </div>
                       <Dropzone
@@ -582,8 +588,10 @@ function StudioApp() {
 export default function Home() {
   return (
     <AuthProvider>
-      <StudioApp />
-      <LoginModal />
+      <LanguageProvider>
+        <StudioApp />
+        <LoginModal />
+      </LanguageProvider>
     </AuthProvider>
   );
 }

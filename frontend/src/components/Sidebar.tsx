@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ToolInfo {
   title: string;
@@ -84,6 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectActiveTool = () => { },
 }) => {
   const { user, openLoginModal, logout } = useAuth();
+  const { t } = useLanguage();
   const [activeModal, setActiveModal] = useState<ToolInfo | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
@@ -182,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed ? "hidden max-lg:block" : "block"
           }`}
         >
-          MIDI & NOTATION
+          {t("midiAndNotation")}
         </div>
 
         {/* Navigation Section */}
@@ -206,7 +208,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               🎹
             </span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Virtual Piano</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("virtualPiano")}</span>
             {activeTool === "virtual-piano" && (
               <span
                 className={`h-2 w-2 rounded-full bg-red-500 ${
@@ -237,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
               </svg>
             </span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>MIDI to Sheet Music</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("midiToSheet")}</span>
             {activeTool === "midi-to-sheet" && (
               <span
                 className={`h-2 w-2 rounded-full bg-red-500 ${
@@ -254,7 +256,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="text-slate-400 shrink-0">✨</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>AI MIDI Generator</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("aiMidi")}</span>
           </button>
 
           <button
@@ -264,7 +266,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="text-slate-400 shrink-0">🎙️</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>MP3 to MIDI</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("mp3ToMidi")}</span>
           </button>
 
           <button
@@ -274,7 +276,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="text-slate-400 shrink-0">🎼</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Sheet Music to MIDI</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("sheetToMidi")}</span>
           </button>
 
           <button
@@ -284,7 +286,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="text-slate-400 shrink-0">🎛️</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>MIDI Editor</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("midiEditor")}</span>
           </button>
 
           <button
@@ -294,7 +296,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="shrink-0">📷</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Sheet Music Scanner</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("scanner")}</span>
           </button>
 
           <button
@@ -305,7 +307,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center gap-3">
               <span className="shrink-0">🧰</span>
-              <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>All tools</span>
+              <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("allTools")}</span>
             </div>
             <span className={`text-xs text-slate-600 ${isCollapsed ? "max-lg:inline hidden" : "inline"}`}>›</span>
           </button>
@@ -324,7 +326,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="shrink-0">💎</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Pricing</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("pricing")}</span>
           </button>
 
           <button
@@ -334,7 +336,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <span className="shrink-0">💬</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Feedback</span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("feedback")}</span>
           </button>
         </div>
 
@@ -354,7 +356,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
-              <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>Sign In / Log In</span>
+              <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("signIn")}</span>
             </button>
           ) : (
             <>
@@ -375,7 +377,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }}
                     className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-800 flex items-center justify-between text-slate-300 hover:text-white"
                   >
-                    <span>Upgrade to PRO</span>
+                    <span>{t("upgradePro")}</span>
                     <span className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded font-bold">PRO</span>
                   </button>
                   <button
@@ -388,7 +390,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <svg className="w-3.5 h-3.5 stroke-current" fill="none" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    <span>Log Out</span>
+                    <span>{t("logOut")}</span>
                   </button>
                 </div>
               )}
@@ -440,7 +442,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   <div className="mt-2 px-1">
                     <div className="flex justify-between text-xs text-slate-400">
-                      <span>Monthly</span>
+                      <span>{t("monthly")}</span>
                       <span className="font-semibold text-slate-300">
                         {user.creditsUsed}/{user.creditsTotal}
                       </span>
@@ -454,8 +456,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       />
                     </div>
                     <div className="mt-1.5 flex justify-between text-[11px] text-slate-500">
-                      <span>✦ {user.creditPacks} Credit Pack</span>
-                      <span>Resets {user.resetDate}</span>
+                      <span>✦ {user.creditPacks} {t("creditPack")}</span>
+                      <span>{t("resets")} {user.resetDate}</span>
                     </div>
                   </div>
                 </div>
@@ -495,7 +497,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => setActiveModal(null)}
                 className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500"
               >
-                Got it
+                {t("gotIt")}
               </button>
             </div>
           </div>

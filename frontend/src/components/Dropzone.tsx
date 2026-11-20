@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { SampleInfo } from "@/types";
+import { useLanguage, TranslationKey } from "@/context/LanguageContext";
 
 interface DropzoneProps {
   onFileUpload: (file: File) => void;
@@ -11,11 +12,11 @@ interface DropzoneProps {
   variant?: "default" | "compact";
 }
 
-const FEATURES = [
-  "Grand staff split",
-  "Smart tuplets",
-  "Live playback",
-  "MusicXML export",
+const FEATURE_KEYS: TranslationKey[] = [
+  "featureGrandStaff",
+  "featureTuplets",
+  "featurePlayback",
+  "featureMusicXml",
 ];
 
 export default function Dropzone({
@@ -25,6 +26,7 @@ export default function Dropzone({
   isLoading,
   variant = "default",
 }: DropzoneProps) {
+  const { t } = useLanguage();
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,23 +93,22 @@ export default function Dropzone({
         </div>
 
         <p className="text-base sm:text-lg font-semibold text-white mb-2">
-          {isDragOver ? "Release to engrave" : "Drop your MIDI file here"}
+          {isDragOver ? t("dropRelease") : t("dropTitle")}
         </p>
         <p className="text-sm text-slate-400 mb-4">
-          or{" "}
           <span className="text-rose-400 font-medium underline underline-offset-4 decoration-rose-500/50">
-            browse from device
+            {t("browseDevice")}
           </span>
         </p>
 
         {!isCompact && (
           <div className="flex flex-wrap justify-center gap-2 mb-1">
-            {FEATURES.map((label) => (
+            {FEATURE_KEYS.map((key) => (
               <span
-                key={label}
+                key={key}
                 className="text-[10px] sm:text-xs font-medium uppercase tracking-wide px-2.5 py-1 rounded-full bg-slate-800/80 text-slate-400 border border-slate-700/60"
               >
-                {label}
+                {t(key)}
               </span>
             ))}
           </div>
@@ -117,7 +118,7 @@ export default function Dropzone({
       {samples.length > 0 && (
         <div className="mt-6">
           <p className="text-xs font-medium text-slate-500 mb-3 text-center sm:text-left">
-            Try a sample score
+            {t("trySample")}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {samples.map((s) => (
