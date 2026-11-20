@@ -99,10 +99,10 @@ export default function ScoreViewer({
   }, [zoom, musicXml]);
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-start overflow-y-auto bg-slate-900/60 p-4 sm:p-8">
+    <div className="relative w-full h-full flex flex-col items-center justify-start overflow-y-auto bg-slate-900/60 p-4 sm:p-8 score-print-wrapper print:bg-white print:p-0 print:overflow-visible print:h-auto">
       {/* Loading overlay */}
       {(isLoading || isRendering) && (
-        <div className="absolute inset-0 z-30 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+        <div className="absolute inset-0 z-30 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3 no-print">
           <div className="w-10 h-10 border-3 border-rose-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm font-medium text-slate-300">
             {isLoading ? "Generating Sheet Music..." : "Engraving Vector Notation..."}
@@ -112,7 +112,7 @@ export default function ScoreViewer({
 
       {/* Render error fallback */}
       {renderError && (
-        <div className="w-full max-w-xl mx-auto my-12 p-5 bg-rose-950/50 border border-rose-800/80 rounded-xl text-rose-200">
+        <div className="w-full max-w-xl mx-auto my-12 p-5 bg-rose-950/50 border border-rose-800/80 rounded-xl text-rose-200 no-print">
           <div className="flex items-center gap-2 mb-2 font-semibold">
             <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -126,18 +126,18 @@ export default function ScoreViewer({
       {/* Sheet Music Canvas Sheet Container */}
       <div
         id="score-sheet-paper"
-        className={`w-full max-w-5xl bg-white rounded-lg shadow-2xl p-6 sm:p-12 text-slate-900 transition-all duration-200 ${
+        className={`w-full max-w-5xl bg-white rounded-lg shadow-2xl p-6 sm:p-12 text-slate-900 transition-all duration-200 print:shadow-none print:border-none print:rounded-none print:p-0 print:max-w-none print:w-full ${
           musicXml ? "block" : "hidden"
         }`}
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05)",
         }}
       >
-        <div ref={containerRef} className="w-full overflow-x-auto min-h-[300px]" />
+        <div ref={containerRef} className="w-full overflow-x-auto min-h-[300px] print:overflow-visible print:w-full print:p-0" />
       </div>
 
       {!musicXml && !isLoading && (
-        <div className="flex flex-col items-center justify-center h-96 text-slate-500 text-center">
+        <div className="flex flex-col items-center justify-center h-96 text-slate-500 text-center no-print">
           <svg className="w-16 h-16 stroke-slate-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
           </svg>

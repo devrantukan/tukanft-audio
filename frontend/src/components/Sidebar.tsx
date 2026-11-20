@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden no-print"
           aria-hidden="true"
         />
       )}
@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Main Studio Sidebar — mobile: off-canvas drawer; desktop: static rail with optional collapse */}
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] text-slate-300 transition-all duration-200",
+          "fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] text-slate-300 transition-all duration-200 no-print",
           "w-[265px] p-4",
           "lg:static lg:translate-x-0",
           isCollapsed ? "lg:w-[68px] lg:p-2.5" : "lg:w-[265px] lg:p-4",

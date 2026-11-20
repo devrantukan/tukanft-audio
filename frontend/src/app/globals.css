@@ -75,3 +75,138 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* ==========================================================================
+   PRINT STYLES: Clean Vector Sheet Music Engraving Output
+   ========================================================================== */
+@media print {
+  @page {
+    size: auto;
+    margin: 10mm 12mm 15mm 12mm;
+  }
+
+  /* Reset document background & text color */
+  html,
+  body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide all UI layout chrome: sidebar, top navbar, audio player toolbar, sidebar controls, buttons */
+  header,
+  aside,
+  nav,
+  footer,
+  .no-print,
+  [role="toolbar"],
+  button,
+  input,
+  select,
+  .studio-ambient,
+  .studio-ambient::before,
+  .studio-ambient::after {
+    display: none !important;
+  }
+
+  /* Remove flex constraints and overflow scrolling from layout ancestors */
+  #__next,
+  body > div,
+  .flex,
+  .flex-col,
+  .flex-row,
+  main {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Print Score Wrapper */
+  .score-print-wrapper {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Score sheet paper container */
+  #score-sheet-paper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  #score-sheet-paper > div {
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Vector SVG sheet music output */
+  #score-sheet-paper svg,
+  svg[id^="osmdCanvasPage"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto 16px auto !important;
+    overflow: visible !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  /* Ensure page breaks between OSMD multi-page canvas elements */
+  svg[id^="osmdCanvasPage"]:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  /* Hide playback cursor and interactive focus handles on paper */
+  img[id^="cursorImg"],
+  img[id^="osmdCanvas"],
+  .osmd-cursor,
+  [id*="cursor"],
+  svg rect[fill="#33e"],
+  svg rect[fill*="rgb(51, 51, 238)"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+}

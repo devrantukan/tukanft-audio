@@ -73,7 +73,7 @@ export default function Toolbar({
   const transportDisabled = disabled || duration === 0;
 
   return (
-    <div className="w-full bg-slate-900/95 border-b border-slate-800/80 backdrop-blur z-20">
+    <div className="w-full bg-slate-900/95 border-b border-slate-800/80 backdrop-blur z-20 no-print">
       {/* Primary transport row — always visible when score is loaded */}
       <div className="px-safe py-2 flex items-center gap-2 sm:gap-3 min-h-12">
         <button

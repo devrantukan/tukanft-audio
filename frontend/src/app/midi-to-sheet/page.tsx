@@ -299,8 +299,44 @@ export default function MidiToSheetPage() {
     }
   }, []);
 
+  // Listen to beforeprint / afterprint (e.g. keyboard shortcuts Cmd+P / Ctrl+P)
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      if (osmdInstanceRef.current && osmdInstanceRef.current.cursor) {
+        try {
+          osmdInstanceRef.current.cursor.hide();
+        } catch (e) {}
+      }
+    };
+    const handleAfterPrint = () => {
+      if (osmdInstanceRef.current && osmdInstanceRef.current.cursor) {
+        try {
+          osmdInstanceRef.current.cursor.show();
+        } catch (e) {}
+      }
+    };
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, []);
+
   const handlePrint = () => {
+    if (osmdInstanceRef.current && osmdInstanceRef.current.cursor) {
+      try {
+        osmdInstanceRef.current.cursor.hide();
+      } catch (e) {}
+    }
     window.print();
+    setTimeout(() => {
+      if (osmdInstanceRef.current && osmdInstanceRef.current.cursor) {
+        try {
+          osmdInstanceRef.current.cursor.show();
+        } catch (e) {}
+      }
+    }, 500);
   };
 
   const handleDownloadMusicXml = () => {
@@ -411,7 +447,7 @@ export default function MidiToSheetPage() {
       )}
 
       {errorMessage && (
-        <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-4 py-2 text-xs flex items-center justify-between">
+        <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-4 py-2 text-xs flex items-center justify-between no-print">
           <div className="flex items-center gap-2">
             <span className="font-bold">Error:</span>
             <span>{errorMessage}</span>
@@ -422,7 +458,7 @@ export default function MidiToSheetPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden print:block print:h-auto print:overflow-visible">
         {scoreData && showControls && (
           <SidebarControls
             metadata={scoreData.metadata}
@@ -439,9 +475,9 @@ export default function MidiToSheetPage() {
           />
         )}
 
-        <main className="flex-1 h-full min-w-0 relative">
+        <main className="flex-1 h-full min-w-0 relative print:block print:h-auto print:overflow-visible">
           {!scoreData && (
-            <div className="studio-ambient h-full w-full overflow-y-auto flex flex-col items-center px-4 sm:px-6 py-6 sm:py-10">
+            <div className="studio-ambient h-full w-full overflow-y-auto flex flex-col items-center px-4 sm:px-6 py-6 sm:py-10 no-print">
               <div className="my-auto flex flex-col items-center w-full max-w-2xl py-2">
                 <div className="text-center mb-6 max-w-lg">
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400/90 mb-2">
@@ -487,7 +523,7 @@ export default function MidiToSheetPage() {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 no-print">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 relative shadow-2xl">
             <button
               onClick={() => setShowUploadModal(false)}

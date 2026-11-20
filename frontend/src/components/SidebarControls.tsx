@@ -34,7 +34,7 @@ export default function SidebarControls({
 }: SidebarControlsProps) {
   if (!metadata) {
     return (
-      <div className="w-80 h-full bg-slate-900 border-r border-slate-800 p-5 flex flex-col items-center justify-center text-center text-slate-500">
+      <div className="w-80 h-full bg-slate-900 border-r border-slate-800 p-5 flex flex-col items-center justify-center text-center text-slate-500 no-print">
         <svg className="w-12 h-12 stroke-slate-700 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
@@ -51,7 +51,7 @@ export default function SidebarControls({
   const maxCount = Math.max(...Object.values(distribution), 1);
 
   return (
-    <div className="w-full md:w-80 max-h-[45vh] md:max-h-none shrink-0 md:shrink md:h-full bg-slate-900 border-b md:border-b-0 border-r border-slate-800 flex flex-col justify-between overflow-y-auto p-4 text-slate-200">
+    <div className="w-full md:w-80 max-h-[45vh] md:max-h-none shrink-0 md:shrink md:h-full bg-slate-900 border-b md:border-b-0 border-r border-slate-800 flex flex-col justify-between overflow-y-auto p-4 text-slate-200 no-print">
       <div className="space-y-5">
         {/* Header & Key Signature */}
         <div>

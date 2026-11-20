@@ -70,7 +70,7 @@ export default function StudioLayout({
   };
 
   return (
-    <div className="flex h-[100dvh] w-full max-w-full overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-[100dvh] w-full max-w-full overflow-hidden bg-slate-950 text-slate-100 print:h-auto print:overflow-visible print:bg-white print:block">
       <Sidebar
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
@@ -80,9 +80,9 @@ export default function StudioLayout({
       />
 
       {/* Main Studio Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden print:h-auto print:overflow-visible">
         {/* Top Navbar Header */}
-        <header className="relative z-30 pt-safe min-h-14 bg-slate-900/95 border-b border-slate-800 px-safe flex items-center justify-between gap-2 shrink-0 backdrop-blur-sm">
+        <header className="relative z-30 pt-safe min-h-14 bg-slate-900/95 border-b border-slate-800 px-safe flex items-center justify-between gap-2 shrink-0 backdrop-blur-sm no-print">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               onClick={handleHeaderMenuClick}
