@@ -1,5 +1,6 @@
 import os
 import io
+import json
 import uuid
 import copy
 import base64
@@ -9,11 +10,12 @@ from pathlib import Path
 
 logger = logging.getLogger("midi2notes")
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, Response, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import music21 as m21
+from ai_composer import generate_ai_composition
 
 BASE_DIR = Path(__file__).resolve().parent
 SAMPLES_DIR = BASE_DIR / "samples"
@@ -73,10 +75,17 @@ SAMPLE_METADATA = [
 SCORE_CACHE: Dict[str, bytes] = {}
 SESSION_CACHE_DIR = BASE_DIR / ".sessions"
 SESSION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+SESSION_META_CACHE: Dict[str, dict] = {}
 
-def save_session_midi(session_id: str, data: bytes) -> None:
-    """Save MIDI bytes to in-memory cache and persistent disk cache."""
+def save_session_midi(session_id: str, data: bytes, metadata: Optional[dict] = None) -> None:
+    """Save MIDI bytes to in-memory cache and persistent disk cache, with optional metadata."""
     SCORE_CACHE[session_id] = data
+    if metadata:
+        SESSION_META_CACHE[session_id] = metadata
+        try:
+            (SESSION_CACHE_DIR / f"{session_id}.json").write_text(json.dumps(metadata), encoding="utf-8")
+        except Exception as e:
+            logger.warning(f"Failed to persist session metadata: {e}")
     try:
         (SESSION_CACHE_DIR / f"{session_id}.mid").write_bytes(data)
     except Exception as e:
@@ -86,6 +95,21 @@ def save_session_midi(session_id: str, data: bytes) -> None:
     if len(SCORE_CACHE) > 100:
         oldest_key = next(iter(SCORE_CACHE))
         SCORE_CACHE.pop(oldest_key, None)
+        SESSION_META_CACHE.pop(oldest_key, None)
+
+def get_session_metadata(session_id: str) -> dict:
+    """Retrieve metadata (such as title) for a session."""
+    if session_id in SESSION_META_CACHE:
+        return SESSION_META_CACHE[session_id]
+    disk_file = SESSION_CACHE_DIR / f"{session_id}.json"
+    if disk_file.exists():
+        try:
+            meta = json.loads(disk_file.read_text(encoding="utf-8"))
+            SESSION_META_CACHE[session_id] = meta
+            return meta
+        except Exception:
+            return {}
+    return {}
 
 def get_session_midi(session_id: str) -> Optional[bytes]:
     """Retrieve MIDI bytes from memory or disk cache."""
@@ -525,22 +549,29 @@ def process_midi_data(
     # Sort events chronologically
     playback_events.sort(key=lambda x: (x["time"], x["midi"]))
 
+    pitch_range_str = f"{min_pitch_str} - {max_pitch_str}" if min_pitch_str != "N/A" else "N/A"
+
     return {
         "musicxml": musicxml_str,
         "musicXml": musicxml_str,
         "metadata": {
             "title": title,
             "key": key_name,
+            "keySignature": key_name,
             "keyConfidence": key_confidence,
             "tempoBpm": bpm,
             "timeSignature": time_sig_str,
             "measuresCount": measures_count,
+            "measureCount": measures_count,
             "notesCount": notes_count,
+            "noteCount": notes_count,
             "minPitch": min_pitch_str,
             "maxPitch": max_pitch_str,
+            "pitchRange": pitch_range_str,
             "durationSeconds": duration_seconds,
             "parts": parts_info,
             "pitchDistribution": pitch_distribution,
+            "pitchClassDistribution": pitch_distribution,
             "transposition": transpose_semitones,
             "quantization": quantize_mode
         },
@@ -823,6 +854,68 @@ async def omr_scan(
         raise HTTPException(status_code=422, detail=f"OMR processing failed: {str(e)}")
 
 
+@app.post("/api/ai/generate")
+async def api_ai_generate(request: Request):
+    """Generate authentic multi-track AI MIDI score, persist session, and return ScoreData."""
+    content_type = request.headers.get("content-type", "")
+    prompt = ""
+    key = "Eb Major"
+    bpm = 84
+    genre = "Neo-Soul"
+    measures = 8
+
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            prompt = body.get("prompt", "")
+            key = body.get("key", "Eb Major")
+            bpm = int(body.get("bpm", 84))
+            genre = body.get("genre", "Neo-Soul")
+            measures = int(body.get("measures", 8))
+        except Exception:
+            pass
+    else:
+        form = await request.form()
+        prompt = form.get("prompt", "")
+        key = form.get("key", "Eb Major")
+        try:
+            bpm = int(form.get("bpm", 84))
+        except (ValueError, TypeError):
+            bpm = 84
+        genre = form.get("genre", "Neo-Soul")
+        try:
+            measures = int(form.get("measures", 8))
+        except (ValueError, TypeError):
+            measures = 8
+
+    try:
+        title = f"{genre} Generation ({key})"
+        midi_bytes = generate_ai_composition(
+            prompt=prompt,
+            key_str=key,
+            bpm=bpm,
+            genre=genre,
+            measures_count=measures
+        )
+        session_id = str(uuid.uuid4())
+        save_session_midi(session_id, midi_bytes, metadata={"title": title})
+
+        result = process_midi_data(
+            midi_bytes=midi_bytes,
+            transpose_semitones=0,
+            quantize_mode="none",
+            split_grand_staff=False,
+            selected_part="all",
+            custom_title=title
+        )
+        result["sessionId"] = session_id
+        result["midiBase64"] = base64.b64encode(midi_bytes).decode("ascii")
+        return JSONResponse(content=result)
+    except Exception as e:
+        logger.error(f"AI Generation failed: {e}")
+        raise HTTPException(status_code=422, detail=f"AI generation failed: {str(e)}")
+
+
 @app.post("/api/reprocess")
 async def reprocess_score(
     session_id: str = Form(...),
@@ -856,13 +949,16 @@ async def get_session_score(session_id: str):
     contents = get_session_midi(session_id)
     if not contents:
         raise HTTPException(status_code=404, detail="Session expired or not found")
+    meta = get_session_metadata(session_id)
+    saved_title = meta.get("title")
     try:
         result = process_midi_data(
             midi_bytes=contents,
             transpose_semitones=0,
             quantize_mode="none",
             split_grand_staff=False,
-            selected_part="all"
+            selected_part="all",
+            custom_title=saved_title
         )
         result["sessionId"] = session_id
         return JSONResponse(content=result)
@@ -881,13 +977,18 @@ async def export_midi(
     if not contents:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    meta = get_session_metadata(session_id)
+    raw_title = meta.get("title", "score")
+    safe_title = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in raw_title)
+    filename = f"{safe_title}.mid"
+
     # If no transformations requested, return the pristine original uploaded MIDI
     # (preserving original microtiming, human velocity layers, and sustain pedal CC64)
     if transpose == 0 and quantize == "none" and selected_part == "all":
         return Response(
             content=contents,
             media_type="audio/midi",
-            headers={"Content-Disposition": "attachment; filename=original_score.mid"}
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
 
     score = m21.converter.parse(contents, format="midi")

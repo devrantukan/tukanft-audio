@@ -18,10 +18,13 @@ export interface PartInfo {
 export interface ScoreMetadata {
   title: string;
   keySignature: string;
+  key?: string;
   timeSignature: string;
   tempoBpm: number;
   measureCount: number;
+  measuresCount?: number;
   noteCount: number;
+  notesCount?: number;
   durationSeconds: number;
   pitchRange: string;
   parts: PartInfo[];
@@ -33,6 +36,7 @@ export interface ScoreData {
   musicXml: string;
   metadata: ScoreMetadata;
   playbackEvents: PlaybackEvent[];
+  midiBase64?: string;
 }
 
 export interface SampleInfo {
