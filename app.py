@@ -527,6 +527,7 @@ def process_midi_data(
 
     return {
         "musicxml": musicxml_str,
+        "musicXml": musicxml_str,
         "metadata": {
             "title": title,
             "key": key_name,

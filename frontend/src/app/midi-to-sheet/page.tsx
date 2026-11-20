@@ -138,20 +138,26 @@ export default function MidiToSheetPage() {
   }, [player]);
 
   const handleScoreLoaded = (data: ScoreData) => {
-    setScoreData(data);
+    const normalizedData: ScoreData = {
+      ...data,
+      musicXml: data.musicXml || (data as any).musicxml || "",
+    };
+    setScoreData(normalizedData);
     setErrorMessage(null);
-    setTranspose((data.metadata as any).transposition || 0);
-    setQuantize((data.metadata as any).quantization || "smart");
-    setDuration(data.metadata.durationSeconds || 0);
+    setTranspose((data.metadata as any)?.transposition || 0);
+    setQuantize((data.metadata as any)?.quantization || "smart");
+    setDuration(data.metadata?.durationSeconds || 0);
     setCurrentTime(0);
     setIsPlaying(false);
     setIsPaused(false);
 
-    player.loadEvents(data.playbackEvents, data.metadata.durationSeconds);
-    player.setInstrument(instrument);
-    player.setSustainPedal(sustainPedal);
-    player.setSpeed(speed);
-    player.setVolume(volume);
+    if (data.playbackEvents) {
+      player.loadEvents(data.playbackEvents, data.metadata?.durationSeconds || 0);
+      player.setInstrument(instrument);
+      player.setSustainPedal(sustainPedal);
+      player.setSpeed(speed);
+      player.setVolume(volume);
+    }
   };
 
   const handleFileUpload = async (file: File) => {
