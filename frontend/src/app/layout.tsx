@@ -17,6 +17,8 @@ export const viewport = {
   maximumScale: 5,
 };
 
+const gtmId = process.env.NEXT_PUBLIC_GTM_ID || process.env.GTM_ID || "GTM-TNZ58P9W";
+
 export default function RootLayout({
   children,
 }: {
@@ -30,27 +32,33 @@ export default function RootLayout({
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <Script
-          src="https://www.googletagmanager.com/gtm.js?id=GTM-TNZ58P9W"
-          strategy="afterInteractive"
-        />
-        <Script id="google-tag-manager" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-          `}
-        </Script>
+        {gtmId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtm.js?id=${gtmId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-tag-manager" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-rose-500 selection:text-white">
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-TNZ58P9W"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
+        {gtmId && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
         {children}
       </body>
     </html>

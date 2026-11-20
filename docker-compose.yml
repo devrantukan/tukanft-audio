@@ -10,6 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - API_INTERNAL_URL=http://api:8088
+      - NEXT_PUBLIC_GTM_ID=${NEXT_PUBLIC_GTM_ID:-GTM-TNZ58P9W}
     expose:
       - "3000"
 
