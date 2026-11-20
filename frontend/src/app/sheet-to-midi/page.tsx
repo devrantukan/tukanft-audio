@@ -22,7 +22,7 @@ export default function SheetToMidiPage() {
       console.warn("Storage save error:", e);
     }
     const targetUrl = data.sessionId ? `/midi-to-sheet?session=${data.sessionId}` : "/midi-to-sheet";
-    router.push(targetUrl);
+    window.location.href = targetUrl;
   };
 
   const handleOpenScoreInVirtualPiano = (data: ScoreData) => {
@@ -36,7 +36,7 @@ export default function SheetToMidiPage() {
       console.warn("Storage save error:", e);
     }
     const targetUrl = data.sessionId ? `/virtual-piano?session=${data.sessionId}` : "/virtual-piano";
-    router.push(targetUrl);
+    window.location.href = targetUrl;
   };
 
   const headerActions = (

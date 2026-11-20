@@ -791,33 +791,15 @@ async def omr_scan(
     if midi_bytes is None and file is not None:
         contents = await file.read()
         filename = file.filename or "uploaded_sheet.png"
-        fn_lower = filename.lower()
-        if "elise" in fn_lower and (SAMPLES_DIR / "fur_elise_theme.mid").exists():
-            midi_bytes = (SAMPLES_DIR / "fur_elise_theme.mid").read_bytes()
-            title = "Für Elise"
-            omr_metrics = {"confidence": 98.4, "stavesCount": 2, "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"], "detectedKey": "A Minor", "detectedTimeSig": "3/8"}
-        elif ("bach" in fn_lower or "prelude" in fn_lower) and (SAMPLES_DIR / "bach_prelude_c.mid").exists():
-            midi_bytes = (SAMPLES_DIR / "bach_prelude_c.mid").read_bytes()
-            title = "Prelude in C Major"
-            omr_metrics = {"confidence": 98.6, "stavesCount": 2, "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"], "detectedKey": "C Major", "detectedTimeSig": "4/4"}
-        elif ("gymnopedie" in fn_lower or "satie" in fn_lower) and (SAMPLES_DIR / "gymnopedie_no_1.mid").exists():
-            midi_bytes = (SAMPLES_DIR / "gymnopedie_no_1.mid").read_bytes()
-            title = "Gymnopédie No. 1"
-            omr_metrics = {"confidence": 97.8, "stavesCount": 2, "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"], "detectedKey": "D Major", "detectedTimeSig": "3/4"}
-        elif ("joy" in fn_lower or "ode" in fn_lower) and (SAMPLES_DIR / "ode_to_joy.mid").exists():
-            midi_bytes = (SAMPLES_DIR / "ode_to_joy.mid").read_bytes()
-            title = "Ode to Joy"
-            omr_metrics = {"confidence": 98.1, "stavesCount": 2, "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"], "detectedKey": "D Major", "detectedTimeSig": "4/4"}
-        else:
-            try:
-                from omr_engine import detect_staves_and_notes
-                midi_bytes, omr_metrics, extracted_title = detect_staves_and_notes(contents, filename)
-                title = extracted_title
-            except Exception as e:
-                logger.error(f"OMR engine error: {e}")
-                title = Path(filename).stem.replace("_", " ").title()
-                midi_bytes = generate_omr_score_midi(title=title)
-                omr_metrics = analyze_sheet_music_image(contents, filename)
+        try:
+            from omr_engine import detect_staves_and_notes
+            midi_bytes, omr_metrics, extracted_title = detect_staves_and_notes(contents, filename)
+            title = extracted_title
+        except Exception as e:
+            logger.error(f"OMR engine error: {e}")
+            title = Path(filename).stem.replace("_", " ").title()
+            midi_bytes = generate_omr_score_midi(title=title)
+            omr_metrics = analyze_sheet_music_image(contents, filename)
 
     if midi_bytes is None and image_base64:
         raw_b64 = image_base64

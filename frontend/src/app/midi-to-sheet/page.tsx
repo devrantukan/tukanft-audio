@@ -151,6 +151,15 @@ export default function MidiToSheetPage() {
     setIsPlaying(false);
     setIsPaused(false);
 
+    // Keep browser address bar in sync with current score session
+    if (typeof window !== "undefined" && data.sessionId) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("session", data.sessionId);
+        window.history.replaceState({}, "", url.toString());
+      } catch (e) {}
+    }
+
     if (data.playbackEvents) {
       player.loadEvents(data.playbackEvents, data.metadata?.durationSeconds || 0);
       player.setInstrument(instrument);
