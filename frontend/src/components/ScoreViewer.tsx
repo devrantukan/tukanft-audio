@@ -99,7 +99,7 @@ export default function ScoreViewer({
   }, [zoom, musicXml]);
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-start overflow-y-auto bg-slate-900/60 p-4 sm:p-8 score-print-wrapper print:bg-white print:p-0 print:overflow-visible print:h-auto">
+    <div className="relative w-full h-full flex flex-col items-center justify-start overflow-y-auto bg-slate-900/60 p-4 sm:p-8 score-print-wrapper print-score-flow">
       {/* Loading overlay */}
       {(isLoading || isRendering) && (
         <div className="absolute inset-0 z-30 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3 no-print">

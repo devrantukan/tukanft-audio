@@ -81,8 +81,8 @@ html {
    ========================================================================== */
 @media print {
   @page {
-    size: auto;
-    margin: 10mm 12mm 15mm 12mm;
+    size: portrait;
+    margin: 10mm 12mm 10mm 12mm;
   }
 
   /* Reset document background & text color */
@@ -104,28 +104,10 @@ html {
     print-color-adjust: exact !important;
   }
 
-  /* Hide all UI layout chrome: sidebar, top navbar, audio player toolbar, sidebar controls, buttons */
-  header,
-  aside,
-  nav,
-  footer,
-  .no-print,
-  [role="toolbar"],
-  button,
-  input,
-  select,
-  .studio-ambient,
-  .studio-ambient::before,
-  .studio-ambient::after {
-    display: none !important;
-  }
-
-  /* Remove flex constraints and overflow scrolling from layout ancestors */
+  /* Reset layout constraints ONLY for ancestors leading to the score */
   #__next,
-  body > div,
-  .flex,
-  .flex-col,
-  .flex-row,
+  .print-score-flow,
+  .score-print-wrapper,
   main {
     display: block !important;
     height: auto !important;
@@ -140,19 +122,6 @@ html {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-  }
-
-  /* Print Score Wrapper */
-  .score-print-wrapper {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    background: #ffffff !important;
   }
 
   /* Score sheet paper container */
@@ -186,7 +155,7 @@ html {
     max-width: 100% !important;
     height: auto !important;
     display: block !important;
-    margin: 0 auto 16px auto !important;
+    margin: 0 auto !important;
     overflow: visible !important;
     page-break-inside: auto !important;
     break-inside: auto !important;
@@ -208,5 +177,28 @@ html {
     display: none !important;
     opacity: 0 !important;
     visibility: hidden !important;
+  }
+
+  /* CRITICAL: HIDE ALL NON-SCORE UI ELEMENTS COMPLETELY */
+  header,
+  aside,
+  nav,
+  footer,
+  [role="toolbar"],
+  .no-print,
+  .no-print *,
+  button,
+  input,
+  select,
+  .studio-ambient,
+  .studio-ambient::before,
+  .studio-ambient::after {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
   }
 }

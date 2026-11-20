@@ -419,31 +419,33 @@ export default function MidiToSheetPage() {
       actions={headerActions}
     >
       {scoreData && (
-        <Toolbar
-          isPlaying={isPlaying}
-          isPaused={isPaused}
-          currentTime={currentTime}
-          duration={duration}
-          instrument={instrument}
-          sustainPedal={sustainPedal}
-          speed={speed}
-          volume={volume}
-          zoom={zoom}
-          layoutMode={layoutMode}
-          disabled={!scoreData}
-          onPlay={() => player.play()}
-          onPause={() => player.pause()}
-          onStop={() => player.stop()}
-          onInstrumentChange={handleInstrumentChange}
-          onTogglePedal={handleTogglePedal}
-          onSpeedChange={handleSpeedChange}
-          onVolumeChange={handleVolumeChange}
-          onZoomChange={setZoom}
-          onLayoutChange={setLayoutMode}
-          onPrint={handlePrint}
-          onDownloadMusicXml={handleDownloadMusicXml}
-          onDownloadMidi={handleDownloadMidi}
-        />
+        <div className="no-print">
+          <Toolbar
+            isPlaying={isPlaying}
+            isPaused={isPaused}
+            currentTime={currentTime}
+            duration={duration}
+            instrument={instrument}
+            sustainPedal={sustainPedal}
+            speed={speed}
+            volume={volume}
+            zoom={zoom}
+            layoutMode={layoutMode}
+            disabled={!scoreData}
+            onPlay={() => player.play()}
+            onPause={() => player.pause()}
+            onStop={() => player.stop()}
+            onInstrumentChange={handleInstrumentChange}
+            onTogglePedal={handleTogglePedal}
+            onSpeedChange={handleSpeedChange}
+            onVolumeChange={handleVolumeChange}
+            onZoomChange={setZoom}
+            onLayoutChange={setLayoutMode}
+            onPrint={handlePrint}
+            onDownloadMusicXml={handleDownloadMusicXml}
+            onDownloadMidi={handleDownloadMidi}
+          />
+        </div>
       )}
 
       {errorMessage && (
@@ -458,24 +460,26 @@ export default function MidiToSheetPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden print:block print:h-auto print:overflow-visible">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden print-score-flow">
         {scoreData && showControls && (
-          <SidebarControls
-            metadata={scoreData.metadata}
-            transpose={transpose}
-            quantize={quantize}
-            splitGrandStaff={splitGrandStaff}
-            selectedPart={selectedPart}
-            isProcessing={isReprocessing}
-            onTransposeChange={setTranspose}
-            onQuantizeChange={setQuantize}
-            onSplitGrandStaffChange={setSplitGrandStaff}
-            onSelectedPartChange={setSelectedPart}
-            onApplyTransformations={handleApplyTransformations}
-          />
+          <div className="no-print shrink-0 md:h-full">
+            <SidebarControls
+              metadata={scoreData.metadata}
+              transpose={transpose}
+              quantize={quantize}
+              splitGrandStaff={splitGrandStaff}
+              selectedPart={selectedPart}
+              isProcessing={isReprocessing}
+              onTransposeChange={setTranspose}
+              onQuantizeChange={setQuantize}
+              onSplitGrandStaffChange={setSplitGrandStaff}
+              onSelectedPartChange={setSelectedPart}
+              onApplyTransformations={handleApplyTransformations}
+            />
+          </div>
         )}
 
-        <main className="flex-1 h-full min-w-0 relative print:block print:h-auto print:overflow-visible">
+        <main className="flex-1 h-full min-w-0 relative print-score-flow">
           {!scoreData && (
             <div className="studio-ambient h-full w-full overflow-y-auto flex flex-col items-center px-4 sm:px-6 py-6 sm:py-10 no-print">
               <div className="my-auto flex flex-col items-center w-full max-w-2xl py-2">
