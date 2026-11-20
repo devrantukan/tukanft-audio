@@ -194,7 +194,7 @@ export default function LandingPage() {
         </header>
 
         {/* Hero Section */}
-        <section className="relative overflow-hidden pt-12 pb-16 px-4 sm:px-6 lg:px-12 text-center bg-gradient-to-b from-slate-900/60 via-slate-950 to-slate-950 border-b border-slate-800/80">
+        <section className="relative shrink-0 pt-12 pb-16 px-4 sm:px-6 lg:px-12 text-center bg-gradient-to-b from-slate-900/60 via-slate-950 to-slate-950 border-b border-slate-800/80">
           <div className="max-w-4xl mx-auto flex flex-col items-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/20 text-rose-400 mb-6">
               <span>✨</span>
@@ -234,7 +234,7 @@ export default function LandingPage() {
         </section>
 
         {/* Tools Showcase Grid */}
-        <section className="py-12 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full">
+        <section className="shrink-0 py-12 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-xs font-bold text-rose-400 uppercase tracking-widest block mb-1">
@@ -286,7 +286,7 @@ export default function LandingPage() {
         </section>
 
         {/* Feature Highlights Banner */}
-        <section className="py-12 px-4 sm:px-6 lg:px-12 border-t border-slate-800/80 bg-slate-900/30">
+        <section className="shrink-0 py-12 px-4 sm:px-6 lg:px-12 border-t border-slate-800/80 bg-slate-900/30">
           <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800/80">
               <span className="text-2xl mb-2 block">⚡</span>
@@ -320,7 +320,7 @@ export default function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-slate-800 py-8 px-4 sm:px-6 text-center text-xs text-slate-500">
+        <footer className="shrink-0 border-t border-slate-800 py-8 px-4 sm:px-6 text-center text-xs text-slate-500">
           <p className="mb-2">
             © {new Date().getFullYear()} Tukanft Audio. Built for musicians, producers, and arrangers worldwide.
           </p>
