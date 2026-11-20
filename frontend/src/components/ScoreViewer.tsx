@@ -56,8 +56,16 @@ export default function ScoreViewer({
         drawCredits: true,
         drawPartNames: true,
         followCursor: true,
-        drawingParameters: layoutMode === "continuous" ? "compact" : "default",
+        drawingParameters: "default",
+        pageFormat: layoutMode === "continuous" ? "Endless" : "A4_P",
       });
+
+      // Ensure notes and staves fill the page width completely with proper justification
+      osmd.EngravingRules.CompactMode = false;
+      osmd.EngravingRules.StretchLastSystemLine = true;
+      osmd.EngravingRules.FillEmptyMeasuresWithWholeRest = 1;
+      osmd.EngravingRules.PageLeftMargin = 2;
+      osmd.EngravingRules.PageRightMargin = 2;
 
       osmdRef.current = osmd;
 
@@ -85,6 +93,38 @@ export default function ScoreViewer({
   useEffect(() => {
     initScore();
   }, [initScore]);
+
+  // Handle dynamic container resize (sidebar toggle, settings toggle, window resize)
+  useEffect(() => {
+    if (!containerRef.current) return;
+    let resizeTimer: NodeJS.Timeout | null = null;
+    let lastWidth = containerRef.current.clientWidth;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const newWidth = Math.round(entry.contentRect.width);
+        if (newWidth > 0 && Math.abs(newWidth - lastWidth) > 5 && osmdRef.current) {
+          lastWidth = newWidth;
+          if (resizeTimer) clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            try {
+              if (osmdRef.current) {
+                osmdRef.current.render();
+              }
+            } catch (e) {
+              console.warn("OSMD resize render warning:", e);
+            }
+          }, 150);
+        }
+      }
+    });
+
+    observer.observe(containerRef.current);
+    return () => {
+      observer.disconnect();
+      if (resizeTimer) clearTimeout(resizeTimer);
+    };
+  }, []);
 
   // Update zoom when zoom prop changes without full re-parse
   useEffect(() => {
