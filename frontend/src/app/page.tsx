@@ -357,7 +357,7 @@ function StudioApp() {
       {/* Main Studio Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Navbar Header */}
-        <header className="pt-safe min-h-14 bg-slate-900/95 border-b border-slate-800 px-safe flex items-center justify-between gap-2 shrink-0 backdrop-blur-sm">
+        <header className="relative z-30 pt-safe min-h-14 bg-slate-900/95 border-b border-slate-800 px-safe flex items-center justify-between gap-2 shrink-0 backdrop-blur-sm">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               onClick={handleHeaderMenuClick}

@@ -25,7 +25,7 @@ export default function LanguageSwitcher() {
   }, [isOpen]);
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="relative inline-block text-left z-40" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 hover:border-slate-600 text-xs font-semibold transition shadow-sm focus:outline-none"
@@ -45,7 +45,7 @@ export default function LanguageSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-36 rounded-xl bg-slate-900 border border-slate-800 p-1 shadow-2xl z-50 text-xs">
+        <div className="absolute right-0 mt-1.5 w-40 rounded-xl bg-slate-900/98 backdrop-blur-md border border-slate-700/70 p-1 shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
           {LANGUAGES.map((opt) => {
             const isSelected = opt.code === language;
             return (
@@ -55,15 +55,15 @@ export default function LanguageSwitcher() {
                   setLanguage(opt.code);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition font-medium ${
+                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition font-medium ${
                   isSelected
                     ? "bg-rose-600/20 text-rose-300 font-semibold"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{opt.flag}</span>
-                  <span>{opt.name}</span>
+                  <span className="text-xs">{opt.name}</span>
                 </div>
                 {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />}
               </button>
