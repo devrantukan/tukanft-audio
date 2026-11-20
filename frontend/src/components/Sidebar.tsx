@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -63,7 +65,16 @@ const TOOL_INFO_MAP: Record<string, ToolInfo> = {
   },
 };
 
-export type ActiveToolType = "midi-to-sheet" | "virtual-piano" | "sheet-to-midi" | "scanner";
+export type ActiveToolType =
+  | "all-tools"
+  | "midi-to-sheet"
+  | "virtual-piano"
+  | "sheet-to-midi"
+  | "scanner"
+  | "mp3-to-midi"
+  | "ai-midi"
+  | "midi-editor"
+  | "pricing";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -80,14 +91,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose = () => { },
   isCollapsed = false,
   onToggleCollapse = () => { },
-  activeTool = "midi-to-sheet",
+  activeTool,
   onSelectTool,
   onSelectActiveTool = () => { },
 }) => {
+  const pathname = usePathname();
   const { user, openLoginModal, logout } = useAuth();
   const { t } = useLanguage();
   const [activeModal, setActiveModal] = useState<ToolInfo | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const effectiveActiveTool: ActiveToolType =
+    activeTool ||
+    (pathname === "/virtual-piano"
+      ? "virtual-piano"
+      : pathname === "/midi-to-sheet"
+      ? "midi-to-sheet"
+      : pathname === "/sheet-to-midi"
+      ? "sheet-to-midi"
+      : pathname === "/scanner"
+      ? "scanner"
+      : pathname === "/mp3-to-midi"
+      ? "mp3-to-midi"
+      : pathname === "/ai-midi"
+      ? "ai-midi"
+      : pathname === "/midi-editor"
+      ? "midi-editor"
+      : pathname === "/pricing"
+      ? "pricing"
+      : pathname === "/"
+      ? "all-tools"
+      : "midi-to-sheet");
 
   const handleToolClick = (toolKey: string) => {
     if (toolKey === "midi-to-sheet") {
@@ -136,23 +170,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <div className="flex items-center gap-3">
-            <Image
-              src="/tukan-logo.svg"
-              alt="Tukanft Logo"
-              width={32}
-              height={32}
-              className="drop-shadow shrink-0 cursor-pointer"
-              onClick={onToggleCollapse}
-              title={isCollapsed ? "Click to expand sidebar" : undefined}
-            />
-            <div
-              className={`items-baseline gap-1.5 leading-none overflow-hidden ${
-                isCollapsed ? "hidden max-lg:flex" : "flex"
-              }`}
-            >
-              <span className="text-xl font-extrabold tracking-tight text-white">Tukanft</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-red-500">audio</span>
-            </div>
+            <Link href="/" onClick={onClose} className="flex items-center gap-3 group">
+              <Image
+                src="/tukan-logo.svg"
+                alt="Tukanft Logo"
+                width={32}
+                height={32}
+                className="drop-shadow shrink-0 cursor-pointer group-hover:scale-105 transition-transform"
+              />
+              <div
+                className={`items-baseline gap-1.5 leading-none overflow-hidden ${
+                  isCollapsed ? "hidden max-lg:flex" : "flex"
+                }`}
+              >
+                <span className="text-xl font-extrabold tracking-tight text-white group-hover:text-slate-100 transition-colors">Tukanft</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-red-500">audio</span>
+              </div>
+            </Link>
           </div>
 
           {/* Collapse/Expand Toggle Button */}
@@ -196,18 +230,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Section */}
         <nav className="flex flex-col gap-1 mt-1">
           {/* Virtual Piano Tool */}
-          <button
-            onClick={() => handleToolClick("virtual-piano")}
+          <Link
+            href="/virtual-piano"
+            onClick={onClose}
             title="Virtual Piano Keyboard Simulator"
             className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
               isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
-            } ${activeTool === "virtual-piano"
+            } ${effectiveActiveTool === "virtual-piano"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
               }`}
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${activeTool === "virtual-piano"
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${effectiveActiveTool === "virtual-piano"
                 ? "bg-red-500/10 text-red-500"
                 : "bg-slate-800/80 text-slate-400"
                 }`}
@@ -215,28 +250,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
               🎹
             </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("virtualPiano")}</span>
-            {activeTool === "virtual-piano" && (
+            {effectiveActiveTool === "virtual-piano" && (
               <span
                 className={`h-2 w-2 rounded-full bg-red-500 ${
                   isCollapsed ? "absolute top-1.5 right-1.5 lg:top-1.5 lg:right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
                 }`}
               />
             )}
-          </button>
+          </Link>
 
           {/* MIDI to Sheet Music Tool */}
-          <button
-            onClick={() => handleToolClick("midi-to-sheet")}
+          <Link
+            href="/midi-to-sheet"
+            onClick={onClose}
             title="MIDI to Sheet Music Converter"
             className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
               isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
-            } ${activeTool === "midi-to-sheet"
+            } ${effectiveActiveTool === "midi-to-sheet"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
               }`}
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${activeTool === "midi-to-sheet"
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${effectiveActiveTool === "midi-to-sheet"
                 ? "bg-red-500/10 text-red-500"
                 : "bg-slate-800/80 text-slate-400"
                 }`}
@@ -246,50 +282,91 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </svg>
             </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("midiToSheet")}</span>
-            {activeTool === "midi-to-sheet" && (
+            {effectiveActiveTool === "midi-to-sheet" && (
               <span
                 className={`h-2 w-2 rounded-full bg-red-500 ${
                   isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
                 }`}
               />
             )}
-          </button>
+          </Link>
 
-          <button
-            onClick={() => handleToolClick("ai-midi")}
+          {/* AI MIDI Generator */}
+          <Link
+            href="/ai-midi"
+            onClick={onClose}
             title="AI MIDI Generator"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${effectiveActiveTool === "ai-midi"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
               }`}
           >
-            <span className="text-slate-400 shrink-0">✨</span>
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${effectiveActiveTool === "ai-midi"
+                ? "bg-amber-500/15 text-amber-400"
+                : "text-slate-400"
+                }`}
+            >
+              ✨
+            </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("aiMidi")}</span>
-          </button>
+            {effectiveActiveTool === "ai-midi" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-amber-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
+            )}
+          </Link>
 
-          <button
-            onClick={() => handleToolClick("mp3-to-midi")}
+          {/* MP3 to MIDI */}
+          <Link
+            href="/mp3-to-midi"
+            onClick={onClose}
             title="MP3 to MIDI"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${effectiveActiveTool === "mp3-to-midi"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
               }`}
           >
-            <span className="text-slate-400 shrink-0">🎙️</span>
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${effectiveActiveTool === "mp3-to-midi"
+                ? "bg-purple-500/15 text-purple-400"
+                : "text-slate-400"
+                }`}
+            >
+              🎙️
+            </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("mp3ToMidi")}</span>
-          </button>
+            {effectiveActiveTool === "mp3-to-midi" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-purple-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
+            )}
+          </Link>
 
           {/* Sheet to MIDI */}
-          <button
-            onClick={() => handleToolClick("sheet-to-midi")}
+          <Link
+            href="/sheet-to-midi"
+            onClick={onClose}
             title="Sheet Music to MIDI"
             className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
               isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
             } ${
-              activeTool === "sheet-to-midi"
+              effectiveActiveTool === "sheet-to-midi"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
             }`}
           >
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
-                activeTool === "sheet-to-midi"
+                effectiveActiveTool === "sheet-to-midi"
                   ? "bg-rose-500/15 text-rose-400"
                   : "text-slate-400"
               }`}
@@ -297,40 +374,63 @@ export const Sidebar: React.FC<SidebarProps> = ({
               🎼
             </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("sheetToMidi")}</span>
-            {activeTool === "sheet-to-midi" && (
+            {effectiveActiveTool === "sheet-to-midi" && (
               <span
                 className={`h-2 w-2 rounded-full bg-red-500 ${
                   isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
                 }`}
               />
             )}
-          </button>
+          </Link>
 
-          <button
-            onClick={() => handleToolClick("midi-editor")}
+          {/* MIDI Editor */}
+          <Link
+            href="/midi-editor"
+            onClick={onClose}
             title="MIDI Editor"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
-              }`}
-          >
-            <span className="text-slate-400 shrink-0">🎛️</span>
-            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("midiEditor")}</span>
-          </button>
-
-          {/* Sheet Music Scanner */}
-          <button
-            onClick={() => handleToolClick("scanner")}
-            title="Sheet Music Scanner"
             className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
               isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
             } ${
-              activeTool === "scanner"
+              effectiveActiveTool === "midi-editor"
                 ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
                 : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
             }`}
           >
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
-                activeTool === "scanner"
+                effectiveActiveTool === "midi-editor"
+                  ? "bg-indigo-500/15 text-indigo-400"
+                  : "text-slate-400"
+              }`}
+            >
+              🎛️
+            </span>
+            <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("midiEditor")}</span>
+            {effectiveActiveTool === "midi-editor" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-indigo-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
+            )}
+          </Link>
+
+          {/* Sheet Music Scanner */}
+          <Link
+            href="/scanner"
+            onClick={onClose}
+            title="Sheet Music Scanner"
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${
+              effectiveActiveTool === "scanner"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+            }`}
+          >
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
+                effectiveActiveTool === "scanner"
                   ? "bg-cyan-500/15 text-cyan-400"
                   : "text-slate-400"
               }`}
@@ -338,27 +438,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
               📷
             </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("scanner")}</span>
-            {activeTool === "scanner" && (
+            {effectiveActiveTool === "scanner" && (
               <span
                 className={`h-2 w-2 rounded-full bg-cyan-500 ${
                   isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
                 }`}
               />
             )}
-          </button>
+          </Link>
 
-          <button
-            onClick={() => handleToolClick("all-tools")}
+          {/* All Tools / Landing */}
+          <Link
+            href="/"
+            onClick={onClose}
             title="All Tools"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition justify-between px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
-              }`}
+            className={`flex items-center rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/60 hover:text-white transition justify-between px-3 py-2.5 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
+              } ${effectiveActiveTool === "all-tools" ? "bg-slate-850 text-white" : ""}`}
           >
             <div className="flex items-center gap-3">
-              <span className="shrink-0">🧰</span>
+              <span className="shrink-0 text-slate-400">🧰</span>
               <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("allTools")}</span>
             </div>
             <span className={`text-xs text-slate-600 ${isCollapsed ? "max-lg:inline hidden" : "inline"}`}>›</span>
-          </button>
+          </Link>
         </nav>
 
         {/* Utilities Section */}
