@@ -146,6 +146,28 @@ export const TRANSLATIONS = {
     filterContrast: "High Contrast",
     liveAudioPreview: "Live Audio Preview",
     rescan: "Scan Another Page",
+
+    // Landing & Hero
+    heroBadge: "Next-Generation AI Audio & Music Notation Suite",
+    landingHeroTitlePart1: "Create, Transcribe & Engrave Music with ",
+    landingHeroTitleHighlight: "Superhuman Precision",
+    landingHeroDesc: "Transform MIDI files into engraved sheet music, scan physical scores with your camera, play the 88-key virtual piano, and transcribe polyphonic audio in one unified studio.",
+    launchEngraver: "Launch Sheet Music Engraver",
+    playPianoHero: "Play Virtual Piano",
+    scanSheetHero: "Scan Sheet Music",
+    ecosystemSubtitle: "COMPLETE STUDIO ECOSYSTEM",
+    exploreToolsTitle: "Explore the Creative Audio Tools",
+    exploreToolsDesc: "Each tool is built with professional grade accuracy, browser-based Web Audio synthesis, and multi-format exports.",
+    openStudio: "Open Studio",
+
+    // Tool Card Descriptions
+    midiToSheetDesc: "Convert MIDI files into engraved, professional sheet music. Automatic grand staff split, smart tuplet recognition, real-time playback cursor, and MusicXML export.",
+    virtualPianoDesc: "Interactive 88-key grand piano keyboard. Play with your computer keyboard (QWERTY), mouse, or any real USB/Bluetooth MIDI controller with animated note waterfalls.",
+    cardSheetToMidiDesc: "Upload scanned sheet music PDFs or photos to convert printed staves into playable MIDI sequences using deep neural Optical Music Recognition.",
+    cardScannerDesc: "Snap a photo of printed sheet music with your smartphone or webcam. Alignment guides and laser scanning recognize notes and play them back on the spot.",
+    mp3ToMidiDesc: "Upload audio recordings (.mp3, .wav, .m4a) to transcribe polyphonic piano, vocal melodies, and basslines into clean, edit-ready MIDI.",
+    aiMidiDesc: "Generate musical ideas, chord progressions, and melodic hooks directly from natural language prompts using deep generative music models.",
+    midiEditorDesc: "In-browser multi-track piano roll editor. Draw notes, adjust velocity curves, snap to quantization grids, and export cleanly into sheet music.",
   },
   tr: {
     proStudio: "PRO STÜDYO",
@@ -266,6 +288,28 @@ export const TRANSLATIONS = {
     filterContrast: "Yüksek Kontrast",
     liveAudioPreview: "Canlı Ses Önizlemesi",
     rescan: "Başka Bir Sayfa Tara",
+
+    // Landing & Hero
+    heroBadge: "Yeni Nesil Yapay Zeka Ses ve Nota Yazım Paketi",
+    landingHeroTitlePart1: "Müziği İnsanüstü Hassasiyetle ",
+    landingHeroTitleHighlight: "Üretin, Dönüştürün ve Yazın",
+    landingHeroDesc: "MIDI dosyalarını profesyonel notalara dönüştürün, basılı notaları kameranızla tarayın, 88 tuşlu sanal piyanoyu çalın ve polifonik sesleri tek bir stüdyoda transkribe edin.",
+    launchEngraver: "Nota Dönüştürücüyü Başlat",
+    playPianoHero: "Sanal Piyanoda Çal",
+    scanSheetHero: "Basılı Nota Tara",
+    ecosystemSubtitle: "EKSİKSİZ STÜDYO EKOSİSTEMİ",
+    exploreToolsTitle: "Yaratıcı Ses ve Müzik Araçlarını Keşfedin",
+    exploreToolsDesc: "Her araç profesyonel hassasiyet, tarayıcı tabanlı Web Audio sentezi ve çok formatlı dışa aktarma yetenekleriyle donatılmıştır.",
+    openStudio: "Stüdyoyu Aç",
+
+    // Tool Card Descriptions
+    midiToSheetDesc: "MIDI dosyalarını profesyonel dizek notalarına dönüştürün. Otomatik çift porte (Grand Staff), akıllı üçleme tespiti, canlı imleç takibi ve MusicXML dışa aktarma.",
+    virtualPianoDesc: "Etkileşimli 88 tuşlu kuyruklu piyano klavyesi. Bilgisayar klavyesi (QWERTY), fare veya gerçek USB/Bluetooth MIDI klavye ile akan nota şelalesi eşliğinde çalın.",
+    cardSheetToMidiDesc: "Taranmış nota PDF veya fotoğraflarını yükleyin; derin öğrenme Optik Müzik Tanıma (OMR) ile basılı dizekleri anında çalınabilir MIDI'ye dönüştürün.",
+    cardScannerDesc: "Akıllı telefonunuz veya web kameranızla basılı notanın fotoğrafını çekin. Kılavuz çizgileri ve lazer tarama notaları anında tanıyıp çalar.",
+    mp3ToMidiDesc: "Ses kayıtlarını (.mp3, .wav, .m4a) yükleyin; polifonik piyano, vokal ve bas melodilerini düzenlenebilir temiz MIDI dosyalarına dönüştürün.",
+    aiMidiDesc: "Doğal dildeki açıklamalardan polifonik besteler, akor dizilimleri ve melodik kancaları derin yapay zeka müzik modelleriyle anında üretin.",
+    midiEditorDesc: "Tarayıcı içi çok kanallı piyano rulo (piano roll) editörü. Notalar çizin, tuşe hızlarını ayarlayın, ızgaraya hizalayın ve notaya dönüştürün.",
   },
   fr: {
     proStudio: "STUDIO PRO",
@@ -386,6 +430,28 @@ export const TRANSLATIONS = {
     filterContrast: "Contraste Élevé",
     liveAudioPreview: "Aperçu Audio en Direct",
     rescan: "Scanner une Autre Page",
+
+    // Landing & Hero
+    heroBadge: "Suite audio et de notation musicale IA de nouvelle génération",
+    landingHeroTitlePart1: "Créez, transcrivez et gravez la musique avec une ",
+    landingHeroTitleHighlight: "précision surhumaine",
+    landingHeroDesc: "Transformez vos fichiers MIDI en partitions gravées, numérisez des partitions physiques avec votre caméra, jouez du piano virtuel 88 touches et transcrivez l'audio polyphonique dans un studio unifié.",
+    launchEngraver: "Ouvrir le graveur de partitions",
+    playPianoHero: "Jouer au piano virtuel",
+    scanSheetHero: "Scanner une partition",
+    ecosystemSubtitle: "ÉCOSYSTÈME COMPLET DE STUDIO",
+    exploreToolsTitle: "Découvrez les outils audio créatifs",
+    exploreToolsDesc: "Chaque outil offre une précision professionnelle, une synthèse Web Audio intégrée et des exports multiformats.",
+    openStudio: "Ouvrir le studio",
+
+    // Tool Card Descriptions
+    midiToSheetDesc: "Convertissez des fichiers MIDI en partitions gravées professionnelles. Séparation automatique en double portée, reconnaissance de triolets et export MusicXML.",
+    virtualPianoDesc: "Clavier de piano à queue 88 touches interactif. Jouez avec le clavier (AZERTY/QWERTY), la souris ou un contrôleur MIDI USB/Bluetooth avec cascade de notes.",
+    cardSheetToMidiDesc: "Téléversez des PDF ou photos de partitions pour convertir les portées imprimées en séquences MIDI jouables grâce à la reconnaissance optique de musique.",
+    cardScannerDesc: "Prenez une photo de partitions imprimées avec votre smartphone ou webcam. Les repères d'alignement et le scan laser reconnaissent les notes instantanément.",
+    mp3ToMidiDesc: "Téléversez des enregistrements audio (.mp3, .wav, .m4a) pour transcrire le piano polyphonique, le chant et la basse en MIDI propre et prêt à l'édition.",
+    aiMidiDesc: "Générez des idées musicales, des suites d'accords et des thèmes mélodiques à partir de descriptions textuelles grâce à l'IA générative musicale.",
+    midiEditorDesc: "Éditeur piano roll multipiste dans le navigateur. Dessinez des notes, ajustez la vélocité, quantifiez et exportez directement en partition.",
   },
   es: {
     proStudio: "ESTUDIO PRO",
@@ -506,6 +572,28 @@ export const TRANSLATIONS = {
     filterContrast: "Alto Contraste",
     liveAudioPreview: "Vista Previa de Audio",
     rescan: "Escanear Otra Página",
+
+    // Landing & Hero
+    heroBadge: "Suite de audio y notación musical con IA de última generación",
+    landingHeroTitlePart1: "Crea, transcribe y graba música con ",
+    landingHeroTitleHighlight: "precisión sobrehumana",
+    landingHeroDesc: "Transforma archivos MIDI en partituras profesionales, escanea partituras físicas con tu cámara, toca el piano virtual de 88 teclas y transcribe audio polifónico en un único estudio.",
+    launchEngraver: "Iniciar grabador de partituras",
+    playPianoHero: "Tocar piano virtual",
+    scanSheetHero: "Escanear partituras",
+    ecosystemSubtitle: "ECOSISTEMA COMPLETO DE ESTUDIO",
+    exploreToolsTitle: "Explora las herramientas creativas de audio",
+    exploreToolsDesc: "Cada herramienta cuenta con precisión profesional, síntesis Web Audio en el navegador y exportación multiformato.",
+    openStudio: "Abrir estudio",
+
+    // Tool Card Descriptions
+    midiToSheetDesc: "Convierte archivos MIDI en partituras profesionales grabadas. División automática en clave doble, detección inteligente de tresillos y exportación a MusicXML.",
+    virtualPianoDesc: "Teclado interactivo de piano de cola de 88 teclas. Toca con el teclado de tu ordenador, ratón o cualquier controlador MIDI USB/Bluetooth con cascada de notas.",
+    cardSheetToMidiDesc: "Sube partituras escaneadas en PDF o fotos para convertir pentagramas impresos en secuencias MIDI reproducibles mediante reconocimiento óptico musical neuronal.",
+    cardScannerDesc: "Haz una foto de partituras impresas con tu móvil o webcam. Las guías de alineación y el escaneo láser reconocen las notas al instante.",
+    mp3ToMidiDesc: "Sube grabaciones de audio (.mp3, .wav, .m4a) para transcribir piano polifónico, melodías vocales y bajos en MIDI listo para editar.",
+    aiMidiDesc: "Genera ideas musicales, progresiones de acordes y temas melódicos a partir de lenguaje natural usando modelos generativos de música.",
+    midiEditorDesc: "Editor piano roll multipista en el navegador. Dibuja notas, ajusta velocidades, cuantifica y exporta directamente a partituras.",
   },
   de: {
     proStudio: "PRO STUDIO",
@@ -626,6 +714,28 @@ export const TRANSLATIONS = {
     filterContrast: "Hoher Kontrast",
     liveAudioPreview: "Live-Audiovorschau",
     rescan: "Weitere Seite scannen",
+
+    // Landing & Hero
+    heroBadge: "Next-Gen KI-Audio & Notationssuite",
+    landingHeroTitlePart1: "Musik komponieren, transkribieren & notieren mit ",
+    landingHeroTitleHighlight: "übermenschlicher Präzision",
+    landingHeroDesc: "Verwandeln Sie MIDI-Dateien in Notensätze, scannen Sie gedruckte Noten mit der Kamera, spielen Sie das 88-Tasten-Virtual-Piano und transkribieren Sie polyphone Audios in einem Studio.",
+    launchEngraver: "Notengraveur starten",
+    playPianoHero: "Virtuelles Klavier spielen",
+    scanSheetHero: "Noten scannen",
+    ecosystemSubtitle: "KOMPLETTES STUDIO-ÖKOSYSTEM",
+    exploreToolsTitle: "Entdecken Sie die kreativen Audio-Tools",
+    exploreToolsDesc: "Jedes Tool bietet professionelle Präzision, browserbasierte Web Audio-Synthese und Multiformat-Export.",
+    openStudio: "Studio öffnen",
+
+    // Tool Card Descriptions
+    midiToSheetDesc: "Konvertieren Sie MIDI-Dateien in professionelle Noten. Automatische Klaviersystem-Trennung, intelligente Triolen-Erkennung und MusicXML-Export.",
+    virtualPianoDesc: "Interaktives 88-Tasten-Flügelklavier. Spielen Sie mit Tastatur, Maus oder USB/Bluetooth-MIDI-Keyboard mit animiertem Notenwasserfall.",
+    cardSheetToMidiDesc: "Laden Sie eingescannte Noten-PDFs oder Fotos hoch, um gedruckte Notensysteme mittels neuronaler Notenerkennung in abspielbares MIDI umzuwandeln.",
+    cardScannerDesc: "Fotografieren Sie gedruckte Notenblätter mit Smartphone oder Webcam. Ausrichtungshilfen und Laserscan erkennen Noten sofort.",
+    mp3ToMidiDesc: "Laden Sie Audioaufnahmen (.mp3, .wav, .m4a) hoch, um polyphones Klavier, Gesang und Bass in sauberes MIDI zu transkribieren.",
+    aiMidiDesc: "Generieren Sie musikalische Ideen, Akkordfolgen und Hooklines direkt aus Textbeschreibungen mit generativen Musikmodellen.",
+    midiEditorDesc: "Mehrspuriger Piano-Roll-Editor im Browser. Noten zeichnen, Anschlagstärke anpassen, quantisieren und als Notenblatt exportieren.",
   },
   it: {
     proStudio: "STUDIO PRO",
@@ -746,6 +856,28 @@ export const TRANSLATIONS = {
     filterContrast: "Alto Contrasto",
     liveAudioPreview: "Anteprima Audio dal Vivo",
     rescan: "Scansiona un'Altra Pagina",
+
+    // Landing & Hero
+    heroBadge: "Suite audio e notazione musicale basata su IA di nuova generazione",
+    landingHeroTitlePart1: "Crea, trascrivi e incidi musica con ",
+    landingHeroTitleHighlight: "precisione sovrumana",
+    landingHeroDesc: "Trasforma file MIDI in spartiti professionali, scansiona partiture con la fotocamera, suona il pianoforte virtuale a 88 tasti e trascrivi audio polifonico in un unico studio.",
+    launchEngraver: "Avvia incisore di spartiti",
+    playPianoHero: "Suona il pianoforte virtuale",
+    scanSheetHero: "Scansiona spartito",
+    ecosystemSubtitle: "ECOSISTEMA COMPLETO DI STUDIO",
+    exploreToolsTitle: "Esplora gli strumenti audio creativi",
+    exploreToolsDesc: "Ogni strumento offre precisione professionale, sintesi Web Audio nel browser ed esportazioni multiformato.",
+    openStudio: "Apri studio",
+
+    // Tool Card Descriptions
+    midiToSheetDesc: "Converti file MIDI in spartiti professionali. Separazione automatica doppio rigo, rilevamento intelligente delle terzine ed esportazione MusicXML.",
+    virtualPianoDesc: "Tastiera pianoforte a coda interattiva a 88 tasti. Suona con tastiera, mouse o controller MIDI USB/Bluetooth con cascata di note animata.",
+    cardSheetToMidiDesc: "Carica PDF o foto di spartiti per convertire i pentagrammi stampati in sequenze MIDI riproducibili tramite riconoscimento ottico musicale.",
+    cardScannerDesc: "Scatta una foto di spartiti cartacei con smartphone o webcam. Linee guida e scansione laser riconoscono e suonano le note all'istante.",
+    mp3ToMidiDesc: "Carica registrazioni audio (.mp3, .wav, .m4a) per trascrivere pianoforte polifonico, voci e linee di basso in MIDI pulito.",
+    aiMidiDesc: "Genera idee musicali, progressioni di accordi e temi melodici direttamente da descrizioni testuali con modelli generativi di musica.",
+    midiEditorDesc: "Editor piano roll multitraccia nel browser. Disegna note, regola la velocity, quantizza ed esporta direttamente in spartito.",
   },
 };
 

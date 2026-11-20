@@ -63,7 +63,7 @@ export default function LandingPage() {
       tag: "FLAGSHIP ENGRAVER",
       color: "from-rose-500/20 to-red-500/20 border-rose-500/30 text-rose-400",
       btnClass: "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/20",
-      description: "Convert MIDI files into engraved, professional sheet music. Automatic grand staff split, smart tuplet recognition, real-time playback cursor, and MusicXML export.",
+      description: t("midiToSheetDesc"),
     },
     {
       id: "virtual-piano",
@@ -73,7 +73,7 @@ export default function LandingPage() {
       tag: "88-KEY SIMULATOR",
       color: "from-cyan-500/20 to-blue-500/20 border-cyan-500/30 text-cyan-400",
       btnClass: "bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-600/20",
-      description: "Interactive 88-key grand piano keyboard. Play with your computer keyboard (QWERTY), mouse, or any real USB/Bluetooth MIDI controller with animated note waterfalls.",
+      description: t("virtualPianoDesc"),
     },
     {
       id: "sheet-to-midi",
@@ -83,7 +83,7 @@ export default function LandingPage() {
       tag: "NEURAL OMR v2.4",
       color: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400",
       btnClass: "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20",
-      description: "Upload scanned sheet music PDFs or photos to convert printed staves into playable MIDI sequences using deep neural Optical Music Recognition.",
+      description: t("cardSheetToMidiDesc"),
     },
     {
       id: "scanner",
@@ -93,7 +93,7 @@ export default function LandingPage() {
       tag: "CAMERA & MOBILE",
       color: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400",
       btnClass: "bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20",
-      description: "Snap a photo of printed sheet music with your smartphone or webcam. Alignment guides and laser scanning recognize notes and play them back on the spot.",
+      description: t("cardScannerDesc"),
     },
     {
       id: "mp3-to-midi",
@@ -103,7 +103,7 @@ export default function LandingPage() {
       tag: "AUDIO TRANSCRIPTION",
       color: "from-purple-500/20 to-indigo-500/20 border-purple-500/30 text-purple-400",
       btnClass: "bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/20",
-      description: "Upload audio recordings (.mp3, .wav, .m4a) to transcribe polyphonic piano, vocal melodies, and basslines into clean, edit-ready MIDI.",
+      description: t("mp3ToMidiDesc"),
     },
     {
       id: "ai-midi",
@@ -113,7 +113,7 @@ export default function LandingPage() {
       tag: "AI TRANSFORMER",
       color: "from-yellow-500/20 to-amber-500/20 border-yellow-500/30 text-yellow-400",
       btnClass: "bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20",
-      description: "Generate musical ideas, chord progressions, and melodic hooks directly from natural language prompts using deep generative music models.",
+      description: t("aiMidiDesc"),
     },
     {
       id: "midi-editor",
@@ -123,7 +123,7 @@ export default function LandingPage() {
       tag: "PIANO ROLL EDITOR",
       color: "from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-400",
       btnClass: "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20",
-      description: "In-browser multi-track piano roll editor. Draw notes, adjust velocity curves, snap to quantization grids, and export cleanly into sheet music.",
+      description: t("midiEditorDesc"),
     },
   ];
 
@@ -198,15 +198,15 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto flex flex-col items-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/20 text-rose-400 mb-6">
               <span>✨</span>
-              <span>Next-Generation AI Audio & Music Notation Suite</span>
+              <span>{t("heroBadge")}</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white mb-6 leading-[1.15]">
-              Create, Transcribe & Engrave Music with <span className="bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent">Superhuman Precision</span>
+              {t("landingHeroTitlePart1")}<span className="bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent">{t("landingHeroTitleHighlight")}</span>
             </h1>
 
             <p className="text-sm sm:text-lg text-slate-400 max-w-2xl mb-8 leading-relaxed">
-              Transform MIDI files into engraved sheet music, scan physical scores with your camera, play the 88-key virtual piano, and transcribe polyphonic audio in one unified studio.
+              {t("landingHeroDesc")}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -214,20 +214,20 @@ export default function LandingPage() {
                 href="/midi-to-sheet"
                 className="px-6 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-bold shadow-xl shadow-rose-600/30 transition flex items-center gap-2"
               >
-                <span>🎼 Launch Sheet Music Engraver</span>
+                <span>🎼 {t("launchEngraver")}</span>
                 <span>→</span>
               </Link>
               <Link
                 href="/virtual-piano"
                 className="px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700 transition flex items-center gap-2"
               >
-                <span>🎹 Play Virtual Piano</span>
+                <span>🎹 {t("playPianoHero")}</span>
               </Link>
               <Link
                 href="/scanner"
                 className="px-6 py-3.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-xs sm:text-sm font-semibold transition flex items-center gap-2"
               >
-                <span>📷 Scan Sheet Music</span>
+                <span>📷 {t("scanSheetHero")}</span>
               </Link>
             </div>
           </div>
@@ -238,14 +238,14 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-xs font-bold text-rose-400 uppercase tracking-widest block mb-1">
-                COMPLETE STUDIO ECOSYSTEM
+                {t("ecosystemSubtitle")}
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Explore the Creative Audio Tools
+                {t("exploreToolsTitle")}
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 max-w-md">
-              Each tool is built with professional grade accuracy, browser-based Web Audio synthesis, and multi-format exports.
+              {t("exploreToolsDesc")}
             </p>
           </div>
 
@@ -277,7 +277,7 @@ export default function LandingPage() {
                   href={tool.href}
                   className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm ${tool.btnClass}`}
                 >
-                  <span>Launch Tool</span>
+                  <span>{t("openStudio")}</span>
                   <span>→</span>
                 </Link>
               </div>
