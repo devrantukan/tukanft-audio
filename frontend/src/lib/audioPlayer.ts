@@ -510,18 +510,20 @@ export class MidiAudioPlayer {
       const cursor = this.osmd.cursor;
       const secPerWhole = 240.0 / (this.bpm || 120.0);
 
+      let hasStepped = false;
       while (!cursor.Iterator.EndReached) {
         const currentCursorSec = cursor.Iterator.currentTimeStamp.RealValue * secPerWhole;
         if (currentCursorSec <= this.currentTime) {
           cursor.next();
+          hasStepped = true;
         } else {
           break;
         }
       }
 
-      if (cursor.cursorElement && typeof cursor.cursorElement.scrollIntoView === "function") {
+      if (hasStepped && cursor.cursorElement && typeof cursor.cursorElement.scrollIntoView === "function") {
         cursor.cursorElement.scrollIntoView({
-          behavior: "smooth",
+          behavior: "auto",
           block: "nearest",
           inline: "nearest",
         });

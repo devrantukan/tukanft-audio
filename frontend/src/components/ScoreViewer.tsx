@@ -48,7 +48,7 @@ export default function ScoreViewer({
       const { OpenSheetMusicDisplay } = await import("opensheetmusicdisplay");
 
       const osmd = new OpenSheetMusicDisplay(containerRef.current, {
-        autoResize: true,
+        autoResize: false,
         backend: "svg",
         drawTitle: true,
         drawSubtitle: true,
@@ -94,37 +94,35 @@ export default function ScoreViewer({
     initScore();
   }, [initScore]);
 
-  // Handle dynamic container resize (sidebar toggle, settings toggle, window resize)
+  // Handle window and viewport resizing smoothly with debounce
   useEffect(() => {
-    if (!containerRef.current) return;
     let resizeTimer: NodeJS.Timeout | null = null;
-    let lastWidth = containerRef.current.clientWidth;
+    let lastWindowWidth = typeof window !== "undefined" ? window.innerWidth : 0;
 
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const newWidth = Math.round(entry.contentRect.width);
-        if (newWidth > 0 && Math.abs(newWidth - lastWidth) > 5 && osmdRef.current) {
-          lastWidth = newWidth;
-          if (resizeTimer) clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            try {
-              if (osmdRef.current) {
-                osmdRef.current.render();
-              }
-            } catch (e) {
-              console.warn("OSMD resize render warning:", e);
-            }
-          }, 150);
+    const handleResize = () => {
+      const currentWidth = window.innerWidth;
+      // Only re-render if the width change is significant (e.g. window resize or orientation change)
+      if (Math.abs(currentWidth - lastWindowWidth) < 15) return;
+      lastWindowWidth = currentWidth;
+
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (osmdRef.current && musicXml) {
+          try {
+            osmdRef.current.render();
+          } catch (e) {
+            console.warn("OSMD resize render warning:", e);
+          }
         }
-      }
-    });
+      }, 250);
+    };
 
-    observer.observe(containerRef.current);
+    window.addEventListener("resize", handleResize);
     return () => {
-      observer.disconnect();
+      window.removeEventListener("resize", handleResize);
       if (resizeTimer) clearTimeout(resizeTimer);
     };
-  }, []);
+  }, [musicXml]);
 
   // Update zoom when zoom prop changes without full re-parse
   useEffect(() => {
@@ -141,7 +139,7 @@ export default function ScoreViewer({
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-start overflow-y-auto bg-slate-900/60 p-4 sm:p-8 score-print-wrapper print-score-flow">
       {/* Loading overlay */}
-      {(isLoading || isRendering) && (
+      {(isLoading || (!osmdRef.current && isRendering)) && (
         <div className="absolute inset-0 z-30 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3 no-print">
           <div className="w-10 h-10 border-3 border-rose-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm font-medium text-slate-300">
