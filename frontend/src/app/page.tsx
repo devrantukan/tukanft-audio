@@ -7,6 +7,8 @@ import SidebarControls from "@/components/SidebarControls";
 import ScoreViewer from "@/components/ScoreViewer";
 import Dropzone from "@/components/Dropzone";
 import VirtualPiano from "@/components/VirtualPiano";
+import SheetToMidi from "@/components/SheetToMidi";
+import SheetScanner from "@/components/SheetScanner";
 import LoginModal from "@/components/LoginModal";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -378,7 +380,13 @@ function StudioApp() {
             </button>
             <div className="min-w-0">
               <h1 className="text-sm sm:text-base font-bold text-white truncate">
-                {activeTool === "virtual-piano" ? t("virtualPiano") : t("midiToSheet")}
+                {activeTool === "virtual-piano"
+                  ? t("virtualPiano")
+                  : activeTool === "sheet-to-midi"
+                  ? t("sheetToMidi")
+                  : activeTool === "scanner"
+                  ? t("scanner")
+                  : t("midiToSheet")}
               </h1>
               {activeTool === "midi-to-sheet" && scoreData && (
                 <p className="text-[11px] text-slate-500 truncate">{scoreData.metadata.title}</p>
@@ -434,7 +442,7 @@ function StudioApp() {
               </button>
             )}
 
-            {activeTool === "virtual-piano" && (
+            {activeTool !== "midi-to-sheet" && (
               <button
                 onClick={() => setActiveTool("midi-to-sheet")}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
@@ -445,13 +453,35 @@ function StudioApp() {
           </div>
         </header>
 
-        {/* If Active Tool is Virtual Piano */}
+        {/* Active Tool View Switching */}
         {activeTool === "virtual-piano" ? (
           <VirtualPiano
             samples={samples}
             onOpenScoreInSheetMusic={(data) => {
               handleScoreLoaded(data);
               setActiveTool("midi-to-sheet");
+            }}
+          />
+        ) : activeTool === "sheet-to-midi" ? (
+          <SheetToMidi
+            onOpenScoreInSheetMusic={(data) => {
+              handleScoreLoaded(data);
+              setActiveTool("midi-to-sheet");
+            }}
+            onOpenScoreInVirtualPiano={(data) => {
+              handleScoreLoaded(data);
+              setActiveTool("virtual-piano");
+            }}
+          />
+        ) : activeTool === "scanner" ? (
+          <SheetScanner
+            onOpenScoreInSheetMusic={(data) => {
+              handleScoreLoaded(data);
+              setActiveTool("midi-to-sheet");
+            }}
+            onOpenScoreInVirtualPiano={(data) => {
+              handleScoreLoaded(data);
+              setActiveTool("virtual-piano");
             }}
           />
         ) : (

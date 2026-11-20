@@ -63,7 +63,7 @@ const TOOL_INFO_MAP: Record<string, ToolInfo> = {
   },
 };
 
-export type ActiveToolType = "midi-to-sheet" | "virtual-piano";
+export type ActiveToolType = "midi-to-sheet" | "virtual-piano" | "sheet-to-midi" | "scanner";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -96,6 +96,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onClose();
     } else if (toolKey === "virtual-piano") {
       if (onSelectTool) onSelectTool("virtual-piano");
+      onClose();
+    } else if (toolKey === "sheet-to-midi") {
+      if (onSelectTool) onSelectTool("sheet-to-midi");
+      onClose();
+    } else if (toolKey === "scanner") {
+      if (onSelectTool) onSelectTool("scanner");
       onClose();
     } else {
       setActiveModal(TOOL_INFO_MAP[toolKey] || null);
@@ -269,14 +275,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("mp3ToMidi")}</span>
           </button>
 
+          {/* Sheet to MIDI */}
           <button
             onClick={() => handleToolClick("sheet-to-midi")}
             title="Sheet Music to MIDI"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-white transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
-              }`}
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${
+              activeTool === "sheet-to-midi"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+            }`}
           >
-            <span className="text-slate-400 shrink-0">🎼</span>
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
+                activeTool === "sheet-to-midi"
+                  ? "bg-rose-500/15 text-rose-400"
+                  : "text-slate-400"
+              }`}
+            >
+              🎼
+            </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("sheetToMidi")}</span>
+            {activeTool === "sheet-to-midi" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-red-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
+            )}
           </button>
 
           <button
@@ -289,14 +316,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("midiEditor")}</span>
           </button>
 
+          {/* Sheet Music Scanner */}
           <button
             onClick={() => handleToolClick("scanner")}
             title="Sheet Music Scanner"
-            className={`flex items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 transition gap-3 px-3 py-2 ${isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5" : ""
-              }`}
+            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition ${
+              isCollapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
+            } ${
+              activeTool === "scanner"
+                ? "bg-slate-800/90 text-white shadow-sm ring-1 ring-slate-700/60"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+            }`}
           >
-            <span className="shrink-0">📷</span>
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm shrink-0 ${
+                activeTool === "scanner"
+                  ? "bg-cyan-500/15 text-cyan-400"
+                  : "text-slate-400"
+              }`}
+            >
+              📷
+            </span>
             <span className={isCollapsed ? "max-lg:inline hidden" : "inline"}>{t("scanner")}</span>
+            {activeTool === "scanner" && (
+              <span
+                className={`h-2 w-2 rounded-full bg-cyan-500 ${
+                  isCollapsed ? "absolute top-1.5 right-1.5 ml-auto max-lg:ml-auto max-lg:static lg:absolute" : "ml-auto"
+                }`}
+              />
+            )}
           </button>
 
           <button
