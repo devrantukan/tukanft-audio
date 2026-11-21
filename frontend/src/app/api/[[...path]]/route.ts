@@ -4,15 +4,16 @@ const BACKEND_URL = process.env.API_INTERNAL_URL || "http://127.0.0.1:8088";
 
 export const dynamic = "force-dynamic";
 
-async function proxyRequest(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
-  const { path } = await params;
-  const targetPath = path ? path.join("/") : "";
+async function proxyRequest(request: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  const resolvedParams = await params;
+  const path = resolvedParams?.path;
+  const targetPath = path && path.length > 0 ? path.join("/") : "";
   const targetUrl = new URL(`/api/${targetPath}${request.nextUrl.search}`, BACKEND_URL);
 
   const reqHeaders = new Headers();
   request.headers.forEach((val, key) => {
     const k = key.toLowerCase();
-    if (k !== "host" && k !== "connection") {
+    if (k !== "host" && k !== "connection" && k !== "content-length") {
       reqHeaders.set(key, val);
     }
   });
