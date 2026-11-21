@@ -629,25 +629,48 @@ async def get_samples():
 
 @app.post("/api/convert")
 async def convert_midi(
-    file: UploadFile = File(...),
-    transpose: int = Form(0),
-    quantize: str = Form("smart"),
-    split_grand_staff: bool = Form(False),
-    selected_part: str = Form("all")
+    file: Optional[UploadFile] = File(None),
+    transpose: Any = Form(0),
+    quantize: Any = Form("smart"),
+    split_grand_staff: Any = Form(False),
+    selected_part: Any = Form("all")
 ):
-    if not (file.filename.lower().endswith(".mid") or file.filename.lower().endswith(".midi")):
-        raise HTTPException(status_code=400, detail="Uploaded file must be a MIDI file (.mid or .midi)")
-
-    contents = await file.read()
-    if len(contents) == 0:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty")
-
-    session_id = str(uuid.uuid4())
-    save_session_midi(session_id, contents)
-
-    stem_title = Path(file.filename).stem.replace("_", " ").title()
-
     try:
+        if file is None or not hasattr(file, "read"):
+            raise HTTPException(status_code=400, detail="No file uploaded")
+
+        filename = file.filename or "uploaded.mid"
+        if not (filename.lower().endswith(".mid") or filename.lower().endswith(".midi")):
+            raise HTTPException(status_code=400, detail="Uploaded file must be a MIDI file (.mid or .midi)")
+
+        contents = await file.read()
+        if len(contents) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+        if hasattr(transpose, "default"):
+            transpose = transpose.default
+        if hasattr(quantize, "default"):
+            quantize = quantize.default
+        if hasattr(split_grand_staff, "default"):
+            split_grand_staff = split_grand_staff.default
+        if hasattr(selected_part, "default"):
+            selected_part = selected_part.default
+
+        try:
+            transpose = int(transpose or 0)
+        except (TypeError, ValueError):
+            transpose = 0
+        quantize = str(quantize or "smart").strip()
+        if isinstance(split_grand_staff, str):
+            split_grand_staff = split_grand_staff.lower() in ("true", "1", "yes", "on")
+        else:
+            split_grand_staff = bool(split_grand_staff)
+        selected_part = str(selected_part or "all")
+
+        session_id = str(uuid.uuid4())
+        stem_title = Path(filename).stem.replace("_", " ").title()
+        save_session_midi(session_id, contents, metadata={"title": stem_title})
+
         result = process_midi_data(
             midi_bytes=contents,
             transpose_semitones=transpose,
@@ -657,31 +680,59 @@ async def convert_midi(
             custom_title=stem_title
         )
         result["sessionId"] = session_id
-        return JSONResponse(content=result)
+        return JSONResponse(content=sanitize_for_json(result))
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        logger.exception(f"Error in convert_midi: {e}")
+        return JSONResponse(status_code=422, content={"detail": f"MIDI conversion failed: {str(e)}"})
 
 
 @app.post("/api/sample/{sample_id}")
 async def load_sample(
     sample_id: str,
-    transpose: int = Form(0),
-    quantize: str = Form("smart"),
-    split_grand_staff: bool = Form(False),
-    selected_part: str = Form("all")
+    transpose: Any = Form(0),
+    quantize: Any = Form("smart"),
+    split_grand_staff: Any = Form(False),
+    selected_part: Any = Form("all")
 ):
-    sample_path = SAMPLES_DIR / sample_id
-    if not sample_path.exists():
-        raise HTTPException(status_code=404, detail="Sample not found")
-
-    contents = sample_path.read_bytes()
-    session_id = str(uuid.uuid4())
-    save_session_midi(session_id, contents)
-
-    sample_info = next((s for s in SAMPLE_METADATA if s["id"] == sample_id), None)
-    title = sample_info["title"] if sample_info else sample_path.stem.replace("_", " ").title()
-
     try:
+        sample_path = SAMPLES_DIR / sample_id
+        if not sample_path.exists():
+            from omr_engine import find_sample_file
+            found = find_sample_file(sample_id)
+            if found:
+                sample_path = found
+            else:
+                raise HTTPException(status_code=404, detail="Sample not found")
+
+        contents = sample_path.read_bytes()
+        session_id = str(uuid.uuid4())
+
+        sample_info = next((s for s in SAMPLE_METADATA if s["id"] == sample_id), None)
+        title = sample_info["title"] if sample_info else sample_path.stem.replace("_", " ").title()
+        save_session_midi(session_id, contents, metadata={"title": title})
+
+        if hasattr(transpose, "default"):
+            transpose = transpose.default
+        if hasattr(quantize, "default"):
+            quantize = quantize.default
+        if hasattr(split_grand_staff, "default"):
+            split_grand_staff = split_grand_staff.default
+        if hasattr(selected_part, "default"):
+            selected_part = selected_part.default
+
+        try:
+            transpose = int(transpose or 0)
+        except (TypeError, ValueError):
+            transpose = 0
+        quantize = str(quantize or "smart").strip()
+        if isinstance(split_grand_staff, str):
+            split_grand_staff = split_grand_staff.lower() in ("true", "1", "yes", "on")
+        else:
+            split_grand_staff = bool(split_grand_staff)
+        selected_part = str(selected_part or "all")
+
         result = process_midi_data(
             midi_bytes=contents,
             transpose_semitones=transpose,
@@ -691,9 +742,12 @@ async def load_sample(
             custom_title=title
         )
         result["sessionId"] = session_id
-        return JSONResponse(content=result)
+        return JSONResponse(content=sanitize_for_json(result))
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        logger.exception(f"Error in load_sample: {e}")
+        return JSONResponse(status_code=422, content={"detail": f"Sample loading failed: {str(e)}"})
 
 
 def analyze_sheet_music_image(image_bytes: bytes, filename: Optional[str] = None) -> Dict[str, Any]:
@@ -981,24 +1035,44 @@ async def api_ai_generate(request: Request):
         )
         result["sessionId"] = session_id
         result["midiBase64"] = base64.b64encode(midi_bytes).decode("ascii")
-        return JSONResponse(content=result)
+        return JSONResponse(content=sanitize_for_json(result))
     except Exception as e:
         logger.error(f"AI Generation failed: {e}")
-        raise HTTPException(status_code=422, detail=f"AI generation failed: {str(e)}")
+        return JSONResponse(status_code=422, content={"detail": f"AI generation failed: {str(e)}"})
 
 
 @app.post("/api/reprocess")
 async def reprocess_score(
     session_id: str = Form(...),
-    transpose: int = Form(0),
-    quantize: str = Form("none"),
-    split_grand_staff: bool = Form(False),
-    selected_part: str = Form("all"),
+    transpose: Any = Form(0),
+    quantize: Any = Form("none"),
+    split_grand_staff: Any = Form(False),
+    selected_part: Any = Form("all"),
     title: Optional[str] = Form(None)
 ):
     contents = get_session_midi(session_id)
     if not contents:
         raise HTTPException(status_code=404, detail="Session expired or not found. Please re-upload MIDI.")
+
+    if hasattr(transpose, "default"):
+        transpose = transpose.default
+    if hasattr(quantize, "default"):
+        quantize = quantize.default
+    if hasattr(split_grand_staff, "default"):
+        split_grand_staff = split_grand_staff.default
+    if hasattr(selected_part, "default"):
+        selected_part = selected_part.default
+
+    try:
+        transpose = int(transpose or 0)
+    except (TypeError, ValueError):
+        transpose = 0
+    quantize = str(quantize or "none").strip()
+    if isinstance(split_grand_staff, str):
+        split_grand_staff = split_grand_staff.lower() in ("true", "1", "yes", "on")
+    else:
+        split_grand_staff = bool(split_grand_staff)
+    selected_part = str(selected_part or "all")
 
     try:
         result = process_midi_data(
@@ -1010,9 +1084,10 @@ async def reprocess_score(
             custom_title=title
         )
         result["sessionId"] = session_id
-        return JSONResponse(content=result)
+        return JSONResponse(content=sanitize_for_json(result))
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        logger.exception(f"Reprocess error: {e}")
+        return JSONResponse(status_code=422, content={"detail": f"Reprocessing failed: {str(e)}"})
 
 
 @app.get("/api/session/{session_id}")
@@ -1032,9 +1107,10 @@ async def get_session_score(session_id: str):
             custom_title=saved_title
         )
         result["sessionId"] = session_id
-        return JSONResponse(content=result)
+        return JSONResponse(content=sanitize_for_json(result))
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        logger.exception(f"Get session score error: {e}")
+        return JSONResponse(status_code=422, content={"detail": f"Score retrieval failed: {str(e)}"})
 
 
 @app.post("/api/export/midi")
