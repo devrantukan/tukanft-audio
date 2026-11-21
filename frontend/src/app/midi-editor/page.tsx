@@ -39,7 +39,7 @@ const TOTAL_STEPS = TOTAL_BARS * STEPS_PER_BAR; // 128 sixteenth steps
 // Classic Presets
 const PRESETS: Record<string, { title: string; bpm: number; notes: Omit<PianoRollNote, "id">[] }> = {
   furElise: {
-    title: "Für Elise (Beethoven)",
+    title: "Für Elise",
     bpm: 128,
     notes: [
       { pitch: "E5", midi: 76, start: 0, length: 2 },
@@ -62,7 +62,7 @@ const PRESETS: Record<string, { title: string; bpm: number; notes: Omit<PianoRol
     ],
   },
   odeToJoy: {
-    title: "Ode to Joy (Beethoven)",
+    title: "Ode to Joy",
     bpm: 120,
     notes: [
       { pitch: "E4", midi: 64, start: 0, length: 4 },
@@ -83,7 +83,7 @@ const PRESETS: Record<string, { title: string; bpm: number; notes: Omit<PianoRol
     ],
   },
   bluesLick: {
-    title: "Blues & Jazz Cadence",
+    title: "Blues Cadence",
     bpm: 105,
     notes: [
       { pitch: "C4", midi: 60, start: 0, length: 2 },
@@ -148,7 +148,6 @@ export default function MidiEditorPage() {
   // Audio Player Ref
   const audioPlayerRef = useRef<MidiAudioPlayer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const playbackStartTimeRef = useRef<number>(0);
   const workspaceScrollRef = useRef<HTMLDivElement | null>(null);
 
   // Initialize Audio Player
@@ -172,7 +171,6 @@ export default function MidiEditorPage() {
   // Center scroll on C4-C5 upon initial render
   useEffect(() => {
     if (workspaceScrollRef.current) {
-      // Find row index for C5 (midi 72)
       const c5Row = PITCH_ROWS.findIndex((p) => p.midi === 72);
       if (c5Row !== -1) {
         workspaceScrollRef.current.scrollTop = Math.max(0, c5Row * ROW_HEIGHT - 60);
@@ -228,10 +226,8 @@ export default function MidiEditorPage() {
     const player = getAudioPlayer();
     player.setInstrument(instrument);
 
-    // 1 sixteenth note duration in seconds: (60 / bpm) / 4
     const secPerStep = 60 / bpm / 4;
 
-    // Convert notes into PlaybackEvent[]
     const events: PlaybackEvent[] = notes.map((n, idx) => ({
       _id: idx,
       time: n.start * secPerStep,
@@ -249,9 +245,6 @@ export default function MidiEditorPage() {
     player.loadEvents(events, totalDuration, null, bpm);
     player.play();
     setIsPlaying(true);
-
-    const startTime = performance.now();
-    playbackStartTimeRef.current = startTime;
 
     const tick = () => {
       if (!player.isPlaying) {
@@ -309,10 +302,8 @@ export default function MidiEditorPage() {
     const quantize = getQuantizeStep();
     const snappedStep = snapToGrid ? Math.floor(stepIndex / quantize) * quantize : stepIndex;
 
-    // Check if a note already starts here
     const existing = notes.find((n) => n.midi === row.midi && Math.abs(n.start - snappedStep) < 0.5);
     if (existing) {
-      // Preview it
       previewNote(row.midi, 0.25);
       return;
     }
@@ -386,13 +377,11 @@ export default function MidiEditorPage() {
               : Math.max(1, rawLength);
             return { ...n, length: snappedLength };
           } else {
-            // Moving position and pitch
             const rawStart = draggingNote.origStart + stepDelta;
             const snappedStart = snapToGrid
               ? Math.max(0, Math.round(rawStart / quantize) * quantize)
               : Math.max(0, rawStart);
 
-            // Pitch row shift
             const targetMidi = Math.max(48, Math.min(84, draggingNote.origMidi - rowDelta));
             const targetRow = PITCH_ROWS.find((p) => p.midi === targetMidi);
             const pitchName = targetRow ? targetRow.pitch : n.pitch;
@@ -443,7 +432,7 @@ export default function MidiEditorPage() {
     }
 
     const ppq = 480;
-    const ticksPerStep = ppq / 4; // 120 ticks per sixteenth note
+    const ticksPerStep = ppq / 4;
     const exportNotes: ExportNote[] = notes.map((n) => ({
       midi: n.midi,
       startTick: Math.round(n.start * ticksPerStep),
@@ -522,13 +511,13 @@ export default function MidiEditorPage() {
       badge="PIANO ROLL v2"
     >
       <div className="flex-1 flex flex-col h-full w-full overflow-hidden bg-slate-950 text-slate-100 select-none">
-        {/* Editor Main Toolbar */}
-        <div className="h-14 border-b border-slate-800 bg-slate-900/90 px-4 flex flex-wrap items-center justify-between gap-3 shrink-0 z-20 backdrop-blur-md">
+        {/* Editor Main Toolbar (Never overflows onto canvas) */}
+        <div className="min-h-[52px] border-b border-slate-800 bg-slate-900/95 px-3 py-2 flex flex-wrap items-center justify-between gap-y-2 gap-x-4 shrink-0 z-20 backdrop-blur-md">
           {/* Left Group: Playback & Editing Tools */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={togglePlay}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md cursor-pointer ${
                 isPlaying
                   ? "bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/30 animate-pulse"
                   : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30"
@@ -584,15 +573,15 @@ export default function MidiEditorPage() {
               </button>
             </div>
 
-            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
+            <div className="h-4 w-px bg-slate-800 mx-1" />
 
             {/* Presets */}
-            <div className="hidden md:flex items-center gap-1.5 text-xs">
-              <span className="text-slate-400 font-semibold">Preset:</span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-slate-400 font-semibold hidden sm:inline">Preset:</span>
               <select
                 onChange={(e) => handleLoadPreset(e.target.value)}
                 defaultValue="furElise"
-                className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer"
+                className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer"
               >
                 <option value="furElise">Für Elise</option>
                 <option value="odeToJoy">Ode to Joy</option>
@@ -604,7 +593,7 @@ export default function MidiEditorPage() {
           </div>
 
           {/* Right Group: Quantize, BPM, Sound & Actions */}
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-2.5 flex-wrap text-xs">
             {/* Grid Quantize */}
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400 font-semibold">Grid:</span>
@@ -631,7 +620,7 @@ export default function MidiEditorPage() {
             </label>
 
             {/* Tempo (BPM) */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+            <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
               <span className="text-slate-400 font-semibold">BPM:</span>
               <input
                 type="number"
@@ -639,29 +628,27 @@ export default function MidiEditorPage() {
                 max={240}
                 value={bpm}
                 onChange={(e) => setBpm(Math.max(40, Math.min(240, Number(e.target.value) || 120)))}
-                className="w-12 bg-transparent text-amber-400 font-mono font-bold text-xs focus:outline-none text-center"
+                className="w-11 bg-transparent text-amber-400 font-mono font-bold text-xs focus:outline-none text-center"
               />
             </div>
 
             {/* Instrument Selection */}
-            <div className="hidden sm:flex items-center gap-1.5">
-              <select
-                value={instrument}
-                onChange={(e) => setInstrument(e.target.value as InstrumentType)}
-                className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer"
-              >
-                <option value="piano">Grand Piano</option>
-                <option value="epiano">Rhodes EP</option>
-                <option value="strings">Strings</option>
-                <option value="organ">Organ</option>
-                <option value="synth">Lead Synth</option>
-              </select>
-            </div>
+            <select
+              value={instrument}
+              onChange={(e) => setInstrument(e.target.value as InstrumentType)}
+              className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="piano">Grand Piano</option>
+              <option value="epiano">Rhodes EP</option>
+              <option value="strings">Strings</option>
+              <option value="organ">Organ</option>
+              <option value="synth">Lead Synth</option>
+            </select>
 
             {/* Download MIDI */}
             <button
               onClick={handleExportMidi}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-700 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer"
               title="Download standard MIDI file (.mid)"
             >
               <span>📥 Export MIDI</span>
@@ -695,165 +682,171 @@ export default function MidiEditorPage() {
           <div
             style={{
               width: `${TOTAL_STEPS * STEP_WIDTH + 80}px`,
-              height: `${PITCH_ROWS.length * ROW_HEIGHT + 28}px`,
+              minWidth: "100%",
             }}
-            className="relative"
+            className="relative flex flex-col"
           >
-            {/* Top-Left Corner Box (Sticky Top & Left) */}
-            <div className="sticky top-0 left-0 w-20 h-7 bg-slate-900 border-r border-b border-slate-800 z-40 flex items-center justify-center text-[10px] font-mono text-slate-400">
-              Keys
-            </div>
-
-            {/* Measure Bar Header (Sticky Top) */}
-            <div
-              style={{ left: "80px", width: `${TOTAL_STEPS * STEP_WIDTH}px` }}
-              className="absolute top-0 h-7 border-b border-slate-800 bg-slate-900/90 backdrop-blur flex text-[10px] font-mono text-slate-400 z-30 cursor-pointer"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickedStep = Math.max(0, Math.min(TOTAL_STEPS, clickX / STEP_WIDTH));
-                setPlayheadStep(clickedStep);
-              }}
-            >
-              {Array.from({ length: TOTAL_BARS }).map((_, barIdx) => (
-                <div
-                  key={barIdx}
-                  style={{ width: `${STEPS_PER_BAR * STEP_WIDTH}px` }}
-                  className="h-full pl-2 border-r border-slate-800 flex items-center font-bold text-slate-400 hover:text-white transition-colors"
-                >
-                  Bar {barIdx + 1}
-                </div>
-              ))}
-            </div>
-
-            {/* Vertical Piano Keyboard (Sticky Left) */}
-            <div
-              style={{ top: "28px" }}
-              className="sticky left-0 w-20 flex flex-col z-30 select-none bg-slate-900 border-r border-slate-800"
-            >
-              {PITCH_ROWS.map((row) => {
-                const isActive = activePianoKey === row.midi;
-                return (
-                  <div
-                    key={row.midi}
-                    onMouseDown={() => previewNote(row.midi, 0.4)}
-                    style={{ height: `${ROW_HEIGHT}px` }}
-                    className={`px-2 border-b text-[10px] font-mono flex items-center justify-between border-slate-800/60 cursor-pointer transition-colors ${
-                      isActive
-                        ? "bg-amber-500 text-slate-950 font-black shadow-inner"
-                        : row.isBlack
-                        ? "bg-slate-950 text-slate-400 font-bold hover:bg-slate-900"
-                        : "bg-slate-900 text-slate-200 hover:bg-slate-850"
-                    }`}
-                  >
-                    <span>{row.pitch}</span>
-                    {row.isBlack && (
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          isActive ? "bg-slate-950" : "bg-slate-600"
-                        }`}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Note Grid Canvas */}
-            <div
-              style={{
-                left: "80px",
-                top: "28px",
-                width: `${TOTAL_STEPS * STEP_WIDTH}px`,
-                height: `${PITCH_ROWS.length * ROW_HEIGHT}px`,
-              }}
-              className="absolute bg-slate-950"
-            >
-              {/* Background Grid Rows & Columns */}
-              {PITCH_ROWS.map((row, rIdx) => (
-                <div
-                  key={row.midi}
-                  style={{
-                    top: `${rIdx * ROW_HEIGHT}px`,
-                    height: `${ROW_HEIGHT}px`,
-                    width: "100%",
-                  }}
-                  className={`absolute border-b border-slate-800/40 flex ${
-                    row.isBlack ? "bg-slate-950/60" : "bg-slate-900/15"
-                  }`}
-                >
-                  {/* Sixteenth Note Grid Cells */}
-                  {Array.from({ length: TOTAL_STEPS }).map((_, stepIdx) => {
-                    const isBarStart = stepIdx % STEPS_PER_BAR === 0;
-                    const isBeatStart = stepIdx % 4 === 0;
-
-                    return (
-                      <div
-                        key={stepIdx}
-                        onClick={() => handleGridCellClick(rIdx, stepIdx)}
-                        style={{ width: `${STEP_WIDTH}px` }}
-                        className={`h-full border-r ${
-                          isBarStart
-                            ? "border-slate-700/80"
-                            : isBeatStart
-                            ? "border-slate-800/60"
-                            : "border-slate-850/20"
-                        } hover:bg-indigo-500/10 cursor-crosshair transition-colors`}
-                      />
-                    );
-                  })}
-                </div>
-              ))}
-
-              {/* Visual Playhead Bar */}
-              <div
-                style={{
-                  left: `${playheadStep * STEP_WIDTH}px`,
-                  height: "100%",
-                }}
-                className="absolute top-0 w-0.5 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.9)] z-20 pointer-events-none transition-transform"
-              >
-                <div className="w-3 h-3 bg-rose-500 rotate-45 -ml-[5px] -mt-1.5 shadow-sm" />
+            {/* Sticky Top Ruler Row */}
+            <div className="sticky top-0 z-40 flex h-7 bg-slate-900 border-b border-slate-800 shrink-0 select-none">
+              {/* Sticky Top-Left Corner Box */}
+              <div className="sticky left-0 z-50 w-20 h-full bg-slate-900 border-r border-slate-800 flex items-center justify-center text-[10px] font-mono font-bold text-slate-400 shrink-0">
+                Keys
               </div>
 
-              {/* Rendered Notes Blocks */}
-              {notes.map((n) => {
-                const rowIndex = PITCH_ROWS.findIndex((p) => p.midi === n.midi);
-                if (rowIndex === -1) return null;
-
-                const leftPx = n.start * STEP_WIDTH;
-                const topPx = rowIndex * ROW_HEIGHT + 2;
-                const widthPx = Math.max(12, n.length * STEP_WIDTH - 2);
-
-                return (
+              {/* Measure Bar Header */}
+              <div
+                style={{ width: `${TOTAL_STEPS * STEP_WIDTH}px` }}
+                className="h-full flex text-[10px] font-mono text-slate-400 shrink-0 cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX - rect.left;
+                  const clickedStep = Math.max(0, Math.min(TOTAL_STEPS, clickX / STEP_WIDTH));
+                  setPlayheadStep(clickedStep);
+                }}
+              >
+                {Array.from({ length: TOTAL_BARS }).map((_, barIdx) => (
                   <div
-                    key={n.id}
-                    onMouseDown={(e) => handleNoteMouseDown(e, n, false)}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteNote(n.id);
-                    }}
+                    key={barIdx}
+                    style={{ width: `${STEPS_PER_BAR * STEP_WIDTH}px` }}
+                    className="h-full pl-2 border-r border-slate-800 flex items-center font-bold text-slate-400 hover:text-white transition-colors select-none"
+                  >
+                    Bar {barIdx + 1}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid Body Row (Sticky Keys Column + Canvas) */}
+            <div
+              style={{
+                height: `${PITCH_ROWS.length * ROW_HEIGHT}px`,
+              }}
+              className="relative flex"
+            >
+              {/* Vertical Piano Keyboard (Sticky Left) */}
+              <div className="sticky left-0 z-30 w-20 flex flex-col shrink-0 select-none bg-slate-900 border-r border-slate-800">
+                {PITCH_ROWS.map((row) => {
+                  const isActive = activePianoKey === row.midi;
+                  return (
+                    <div
+                      key={row.midi}
+                      onMouseDown={() => previewNote(row.midi, 0.4)}
+                      style={{ height: `${ROW_HEIGHT}px` }}
+                      className={`px-2 border-b text-[10px] font-mono flex items-center justify-between border-slate-800/60 cursor-pointer transition-colors ${
+                        isActive
+                          ? "bg-amber-500 text-slate-950 font-black shadow-inner"
+                          : row.isBlack
+                          ? "bg-slate-950 text-slate-400 font-bold hover:bg-slate-900"
+                          : "bg-slate-900 text-slate-200 hover:bg-slate-850"
+                      }`}
+                    >
+                      <span>{row.pitch}</span>
+                      {row.isBlack && (
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            isActive ? "bg-slate-950" : "bg-slate-600"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Note Grid Canvas */}
+              <div
+                style={{
+                  width: `${TOTAL_STEPS * STEP_WIDTH}px`,
+                  height: `${PITCH_ROWS.length * ROW_HEIGHT}px`,
+                }}
+                className="relative bg-slate-950 shrink-0"
+              >
+                {/* Background Grid Rows & Columns */}
+                {PITCH_ROWS.map((row, rIdx) => (
+                  <div
+                    key={row.midi}
                     style={{
-                      left: `${leftPx}px`,
-                      top: `${topPx}px`,
-                      width: `${widthPx}px`,
-                      height: `${ROW_HEIGHT - 4}px`,
+                      top: `${rIdx * ROW_HEIGHT}px`,
+                      height: `${ROW_HEIGHT}px`,
+                      width: "100%",
                     }}
-                    className={`absolute rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 border border-indigo-400 shadow-md flex items-center justify-between px-1.5 text-[10px] font-bold text-white group cursor-move hover:brightness-115 active:scale-[0.99] transition-all z-10 ${
-                      draggingNote?.id === n.id ? "ring-2 ring-white brightness-125 z-20" : ""
+                    className={`absolute border-b border-slate-800/40 flex ${
+                      row.isBlack ? "bg-slate-950/60" : "bg-slate-900/15"
                     }`}
                   >
-                    <span className="truncate select-none pointer-events-none">{n.pitch}</span>
+                    {/* Sixteenth Note Grid Cells */}
+                    {Array.from({ length: TOTAL_STEPS }).map((_, stepIdx) => {
+                      const isBarStart = stepIdx % STEPS_PER_BAR === 0;
+                      const isBeatStart = stepIdx % 4 === 0;
 
-                    {/* Right-edge Resize Handle */}
-                    <div
-                      onMouseDown={(e) => handleNoteMouseDown(e, n, true)}
-                      className="w-2.5 h-full absolute right-0 top-0 cursor-ew-resize hover:bg-white/30 rounded-r-md transition-colors"
-                      title="Drag to resize note duration"
-                    />
+                      return (
+                        <div
+                          key={stepIdx}
+                          onClick={() => handleGridCellClick(rIdx, stepIdx)}
+                          style={{ width: `${STEP_WIDTH}px` }}
+                          className={`h-full border-r ${
+                            isBarStart
+                              ? "border-slate-700/80"
+                              : isBeatStart
+                              ? "border-slate-800/60"
+                              : "border-slate-850/20"
+                          } hover:bg-indigo-500/10 cursor-crosshair transition-colors`}
+                        />
+                      );
+                    })}
                   </div>
-                );
-              })}
+                ))}
+
+                {/* Visual Playhead Bar */}
+                <div
+                  style={{
+                    left: `${playheadStep * STEP_WIDTH}px`,
+                    height: "100%",
+                  }}
+                  className="absolute top-0 w-0.5 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.9)] z-20 pointer-events-none transition-transform"
+                >
+                  <div className="w-3 h-3 bg-rose-500 rotate-45 -ml-[5px] -mt-1.5 shadow-sm" />
+                </div>
+
+                {/* Rendered Notes Blocks */}
+                {notes.map((n) => {
+                  const rowIndex = PITCH_ROWS.findIndex((p) => p.midi === n.midi);
+                  if (rowIndex === -1) return null;
+
+                  const leftPx = n.start * STEP_WIDTH;
+                  const topPx = rowIndex * ROW_HEIGHT + 2;
+                  const widthPx = Math.max(12, n.length * STEP_WIDTH - 2);
+
+                  return (
+                    <div
+                      key={n.id}
+                      onMouseDown={(e) => handleNoteMouseDown(e, n, false)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteNote(n.id);
+                      }}
+                      style={{
+                        left: `${leftPx}px`,
+                        top: `${topPx}px`,
+                        width: `${widthPx}px`,
+                        height: `${ROW_HEIGHT - 4}px`,
+                      }}
+                      className={`absolute rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 border border-indigo-400 shadow-md flex items-center justify-between px-1.5 text-[10px] font-bold text-white group cursor-move hover:brightness-115 active:scale-[0.99] transition-all z-10 ${
+                        draggingNote?.id === n.id ? "ring-2 ring-white brightness-125 z-20" : ""
+                      }`}
+                    >
+                      <span className="truncate select-none pointer-events-none">{n.pitch}</span>
+
+                      {/* Right-edge Resize Handle */}
+                      <div
+                        onMouseDown={(e) => handleNoteMouseDown(e, n, true)}
+                        className="w-2.5 h-full absolute right-0 top-0 cursor-ew-resize hover:bg-white/30 rounded-r-md transition-colors"
+                        title="Drag to resize note duration"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
