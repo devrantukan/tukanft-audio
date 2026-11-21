@@ -33,6 +33,8 @@ export class MidiAudioPlayer {
   onProgressCallback: ((curr: number, dur: number) => void) | null = null;
   onStateChangeCallback: ((state: "playing" | "paused" | "stopped") => void) | null = null;
   osmd: any = null;
+  currentCursorIndex: number = 0;
+  cursorTimestamps: number[] = [];
 
   async initAudio(): Promise<void> {
     if (this.synth) return;
@@ -330,21 +332,56 @@ export class MidiAudioPlayer {
     } catch (e) {}
   }
 
+  setOsmd(osmdInstance: any, bpm: number = 120.0): void {
+    this.osmd = osmdInstance;
+    this.bpm = bpm || 120.0;
+    this.currentCursorIndex = 0;
+    this.cursorTimestamps = [];
+
+    if (this.osmd && this.osmd.cursor) {
+      try {
+        const cursor = this.osmd.cursor;
+        cursor.reset();
+        cursor.show();
+
+        const iterator = cursor.iterator || cursor.Iterator;
+        if (iterator) {
+          const secPerWhole = 240.0 / (this.bpm || 120.0);
+          let count = 0;
+          while (!iterator.endReached && !iterator.EndReached && count < 3000) {
+            count++;
+            const ts = iterator.currentTimeStamp;
+            const realVal = ts
+              ? typeof ts.realValue === "number"
+                ? ts.realValue
+                : typeof ts.RealValue === "number"
+                ? ts.RealValue
+                : 0
+              : 0;
+            this.cursorTimestamps.push(realVal * secPerWhole);
+            cursor.next();
+          }
+          cursor.reset();
+          cursor.show();
+        }
+      } catch (e) {
+        console.warn("Error mapping cursor timestamps:", e);
+      }
+    }
+  }
+
   loadEvents(playbackEvents: PlaybackEvent[], totalDuration: number, osmdInstance: any = null, bpm: number = 120.0): void {
     this.stop();
     this.events = (playbackEvents || []).map((ev, idx) => ({ ...ev, _id: idx }));
     this.duration = totalDuration || (this.events.length > 0 ? this.events[this.events.length - 1].time + 2 : 0);
-    this.osmd = osmdInstance;
     this.bpm = bpm || 120.0;
     this.currentTime = 0;
+    this.currentCursorIndex = 0;
 
-    if (this.osmd && this.osmd.cursor) {
-      try {
-        this.osmd.cursor.show();
-        this.osmd.cursor.reset();
-      } catch (e) {
-        console.warn("Cursor init warning:", e);
-      }
+    if (osmdInstance) {
+      this.setOsmd(osmdInstance, this.bpm);
+    } else if (this.osmd) {
+      this.setOsmd(this.osmd, this.bpm);
     }
   }
 
@@ -374,15 +411,20 @@ export class MidiAudioPlayer {
 
     this.startTime = performance.now() - (this.currentTime / this.speed) * 1000;
 
-    if (this.osmd && this.osmd.cursor) {
+    if (this.currentTime === 0) {
+      this.currentCursorIndex = 0;
+      if (this.osmd && this.osmd.cursor) {
+        try {
+          this.osmd.cursor.reset();
+          this.osmd.cursor.show();
+        } catch (e) {
+          console.warn("Cursor play warning:", e);
+        }
+      }
+    } else if (this.osmd && this.osmd.cursor) {
       try {
         this.osmd.cursor.show();
-        if (this.currentTime === 0) {
-          this.osmd.cursor.reset();
-        }
-      } catch (e) {
-        console.warn("Cursor play warning:", e);
-      }
+      } catch (e) {}
     }
 
     if (this.onStateChangeCallback) {
@@ -505,28 +547,80 @@ export class MidiAudioPlayer {
   }
 
   _updateCursor(): void {
-    if (!this.osmd || !this.osmd.cursor || !this.osmd.cursor.Iterator) return;
+    if (!this.osmd || !this.osmd.cursor) return;
     try {
       const cursor = this.osmd.cursor;
-      const secPerWhole = 240.0 / (this.bpm || 120.0);
 
-      let hasStepped = false;
-      while (!cursor.Iterator.EndReached) {
-        const currentCursorSec = cursor.Iterator.currentTimeStamp.RealValue * secPerWhole;
-        if (currentCursorSec <= this.currentTime) {
-          cursor.next();
-          hasStepped = true;
-        } else {
+      // If we don't have pre-cached timestamps, advance dynamically
+      if (!this.cursorTimestamps || this.cursorTimestamps.length === 0) {
+        const iterator = cursor.iterator || cursor.Iterator;
+        if (!iterator) return;
+        const secPerWhole = 240.0 / (this.bpm || 120.0);
+
+        let hasStepped = false;
+        while (!iterator.endReached && !iterator.EndReached) {
+          const ts = iterator.currentTimeStamp;
+          if (!ts) break;
+          const realVal =
+            typeof ts.realValue === "number"
+              ? ts.realValue
+              : typeof ts.RealValue === "number"
+              ? ts.RealValue
+              : 0;
+          if (realVal * secPerWhole <= this.currentTime) {
+            cursor.next();
+            hasStepped = true;
+          } else {
+            break;
+          }
+        }
+        if (hasStepped) {
+          const cursorEl = cursor.cursorElement || (cursor as any).cursorElement;
+          if (cursorEl && typeof cursorEl.scrollIntoView === "function") {
+            cursorEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+          }
+        }
+        return;
+      }
+
+      // Step-indexed navigation based on pre-mapped timestamps
+      const targetTime = this.currentTime;
+      let targetIdx = 0;
+      for (let i = this.cursorTimestamps.length - 1; i >= 0; i--) {
+        if (targetTime >= this.cursorTimestamps[i] - 0.03) {
+          targetIdx = i;
           break;
         }
       }
 
-      if (hasStepped && cursor.cursorElement && typeof cursor.cursorElement.scrollIntoView === "function") {
-        cursor.cursorElement.scrollIntoView({
-          behavior: "auto",
-          block: "nearest",
-          inline: "nearest",
-        });
+      if (targetIdx < this.currentCursorIndex) {
+        cursor.reset();
+        cursor.show();
+        this.currentCursorIndex = 0;
+      }
+
+      let hasStepped = false;
+      const iterator = cursor.iterator || cursor.Iterator;
+      while (
+        this.currentCursorIndex < targetIdx &&
+        iterator &&
+        !iterator.endReached &&
+        !iterator.EndReached
+      ) {
+        cursor.next();
+        this.currentCursorIndex++;
+        hasStepped = true;
+      }
+
+      if (hasStepped) {
+        const cursorEl = cursor.cursorElement || (cursor as any).cursorElement;
+        if (cursorEl && typeof cursorEl.scrollIntoView === "function") {
+          cursorEl.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "nearest",
+          });
+        }
       }
     } catch (e) {
       console.warn("Cursor update error:", e);

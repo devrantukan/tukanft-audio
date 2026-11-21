@@ -110,12 +110,6 @@ export default function MidiToSheetPage() {
   useEffect(() => {
     player.onProgressCallback = (time: number) => {
       setCurrentTime(time);
-      if (osmdInstanceRef.current && osmdInstanceRef.current.cursor) {
-        try {
-          const cursor = osmdInstanceRef.current.cursor;
-          if (!cursor.iterator || cursor.iterator.EndReached) return;
-        } catch (e) {}
-      }
     };
 
     player.onStateChangeCallback = (state: "playing" | "paused" | "stopped") => {
@@ -161,7 +155,8 @@ export default function MidiToSheetPage() {
     }
 
     if (data.playbackEvents) {
-      player.loadEvents(data.playbackEvents, data.metadata?.durationSeconds || 0);
+      const bpm = data.metadata?.tempoBpm || 120;
+      player.loadEvents(data.playbackEvents, data.metadata?.durationSeconds || 0, osmdInstanceRef.current, bpm);
       player.setInstrument(instrument);
       player.setSustainPedal(sustainPedal);
       player.setSpeed(speed);
@@ -266,9 +261,15 @@ export default function MidiToSheetPage() {
       const updatedData: ScoreData = await response.json();
       setScoreData(updatedData);
 
+      const bpm = updatedData.metadata?.tempoBpm || 120;
+      if (osmdInstanceRef.current) {
+        player.setOsmd(osmdInstanceRef.current, bpm);
+      }
       player.loadEvents(
         updatedData.playbackEvents,
-        updatedData.metadata.durationSeconds
+        updatedData.metadata.durationSeconds,
+        osmdInstanceRef.current,
+        bpm
       );
     } catch (err: any) {
       console.error("Reprocess error:", err);
@@ -301,12 +302,17 @@ export default function MidiToSheetPage() {
 
   const handleOsmdReady = useCallback((osmd: any) => {
     osmdInstanceRef.current = osmd;
-    if (osmd && osmd.cursor) {
-      try {
-        osmd.cursor.show();
-      } catch (e) {}
+    const bpm = scoreData?.metadata?.tempoBpm || 120;
+    player.setOsmd(osmd, bpm);
+  }, [player, scoreData]);
+
+  // Keep player OSMD instance in sync whenever scoreData or its tempo loads
+  useEffect(() => {
+    if (osmdInstanceRef.current && scoreData) {
+      const bpm = scoreData.metadata?.tempoBpm || 120;
+      player.setOsmd(osmdInstanceRef.current, bpm);
     }
-  }, []);
+  }, [scoreData, player]);
 
   // Listen to beforeprint / afterprint (e.g. keyboard shortcuts Cmd+P / Ctrl+P)
   useEffect(() => {
