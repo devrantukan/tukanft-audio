@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse, Response, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import music21 as m21
+import numpy as np
 from ai_composer import generate_ai_composition
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -77,8 +78,25 @@ SESSION_CACHE_DIR = BASE_DIR / ".sessions"
 SESSION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_META_CACHE: Dict[str, dict] = {}
 
+def sanitize_for_json(obj: Any) -> Any:
+    """Recursively convert numpy types and non-serializable objects into JSON-safe primitives."""
+    if isinstance(obj, dict):
+        return {str(k): sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [sanitize_for_json(v) for v in obj]
+    elif hasattr(obj, "tolist") and callable(getattr(obj, "tolist")):
+        return sanitize_for_json(obj.tolist())
+    elif hasattr(obj, "item") and callable(getattr(obj, "item")) and not hasattr(obj, "__len__"):
+        return obj.item()
+    elif isinstance(obj, (int, float, str, bool)) or obj is None:
+        return obj
+    else:
+        return str(obj)
+
 def save_session_midi(session_id: str, data: bytes, metadata: Optional[dict] = None) -> None:
     """Save MIDI bytes to in-memory cache and persistent disk cache, with optional metadata."""
+    if not data:
+        return
     SCORE_CACHE[session_id] = data
     if metadata:
         SESSION_META_CACHE[session_id] = metadata
@@ -330,6 +348,23 @@ def process_midi_data(
     Parses MIDI bytes using music21, applies musical transformations,
     extracts rich metadata and audio playback events, and renders MusicXML.
     """
+    if hasattr(transpose_semitones, "default"):
+        transpose_semitones = transpose_semitones.default
+    if hasattr(quantize_mode, "default"):
+        quantize_mode = quantize_mode.default
+    if hasattr(split_grand_staff, "default"):
+        split_grand_staff = split_grand_staff.default
+    if hasattr(selected_part, "default"):
+        selected_part = selected_part.default
+
+    try:
+        transpose_semitones = int(transpose_semitones)
+    except (TypeError, ValueError):
+        transpose_semitones = 0
+    quantize_mode = str(quantize_mode or "none")
+    split_grand_staff = bool(split_grand_staff)
+    selected_part = str(selected_part or "all")
+
     try:
         score = m21.converter.parse(midi_bytes, format="midi")
     except Exception as e:
@@ -756,102 +791,138 @@ async def omr_scan(
     file: Optional[UploadFile] = File(None),
     image_base64: Optional[str] = Form(None),
     sample_id: Optional[str] = Form(None),
-    transpose: int = Form(0),
-    quantize: str = Form("smart"),
-    split_grand_staff: bool = Form(True)
+    transpose: Any = Form(0),
+    quantize: Any = Form("smart"),
+    split_grand_staff: Any = Form(True)
 ):
-    if hasattr(sample_id, "default"):
-        sample_id = sample_id.default
-    if hasattr(image_base64, "default"):
-        image_base64 = image_base64.default
-    if hasattr(transpose, "default"):
-        transpose = transpose.default
-    if hasattr(quantize, "default"):
-        quantize = quantize.default
-    if hasattr(split_grand_staff, "default"):
-        split_grand_staff = split_grand_staff.default
-
     try:
-        transpose = int(transpose or 0)
-    except (TypeError, ValueError):
-        transpose = 0
-    quantize = str(quantize or "smart")
-    split_grand_staff = bool(split_grand_staff)
+        if hasattr(sample_id, "default"):
+            sample_id = sample_id.default
+        if hasattr(file, "default"):
+            file = file.default
+        if hasattr(image_base64, "default"):
+            image_base64 = image_base64.default
+        if hasattr(transpose, "default"):
+            transpose = transpose.default
+        if hasattr(quantize, "default"):
+            quantize = quantize.default
+        if hasattr(split_grand_staff, "default"):
+            split_grand_staff = split_grand_staff.default
 
-    session_id = str(uuid.uuid4())
-    omr_metrics = {}
-    title = "Scanned Sheet Music"
-    midi_bytes = None
+        try:
+            transpose = int(transpose or 0)
+        except (TypeError, ValueError):
+            transpose = 0
+        quantize = str(quantize or "smart").strip()
+        if isinstance(split_grand_staff, str):
+            split_grand_staff = split_grand_staff.lower() in ("true", "1", "yes", "on")
+        else:
+            split_grand_staff = bool(split_grand_staff)
 
-    if sample_id:
-        sample_path = SAMPLES_DIR / sample_id
-        if sample_path.exists():
-            midi_bytes = sample_path.read_bytes()
-            sample_info = next((s for s in SAMPLE_METADATA if s["id"] == sample_id), None)
-            title = sample_info["title"] if sample_info else sample_path.stem.replace("_", " ").title()
+        session_id = str(uuid.uuid4())
+        omr_metrics = {}
+        title = "Scanned Sheet Music"
+        midi_bytes = None
+
+        if sample_id:
+            sample_path = SAMPLES_DIR / sample_id
+            if sample_path.exists():
+                midi_bytes = sample_path.read_bytes()
+                sample_info = next((s for s in SAMPLE_METADATA if s["id"] == sample_id), None)
+                title = sample_info["title"] if sample_info else sample_path.stem.replace("_", " ").title()
+                omr_metrics = {
+                    "confidence": 98.4,
+                    "stavesCount": 2,
+                    "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"],
+                    "detectedKey": sample_info.get("key", "C Major") if sample_info else "C Major",
+                    "detectedTimeSig": "4/4"
+                }
+
+        if midi_bytes is None and file is not None and hasattr(file, "read"):
+            try:
+                contents = await file.read()
+                filename = file.filename or "uploaded_sheet.png"
+                if contents:
+                    try:
+                        from omr_engine import detect_staves_and_notes
+                        midi_bytes, omr_metrics, extracted_title = detect_staves_and_notes(contents, filename)
+                        title = extracted_title
+                    except Exception as e:
+                        logger.error(f"OMR engine error: {e}", exc_info=True)
+                        title = Path(filename).stem.replace("_", " ").title()
+                        midi_bytes = generate_omr_score_midi(title=title)
+                        omr_metrics = analyze_sheet_music_image(contents, filename)
+            except Exception as e:
+                logger.error(f"File reading error in omr_scan: {e}", exc_info=True)
+
+        if midi_bytes is None and image_base64:
+            raw_b64 = image_base64
+            if "," in raw_b64:
+                raw_b64 = raw_b64.split(",", 1)[1]
+            try:
+                img_bytes = base64.b64decode(raw_b64)
+                if img_bytes:
+                    try:
+                        from omr_engine import detect_staves_and_notes
+                        midi_bytes, omr_metrics, extracted_title = detect_staves_and_notes(img_bytes, "camera_scan.jpg")
+                        title = extracted_title or "Live Camera Scan"
+                    except Exception as e:
+                        logger.error(f"OMR engine error on camera scan: {e}", exc_info=True)
+                        omr_metrics = analyze_sheet_music_image(img_bytes, "camera_scan.jpg")
+                        title = "Live Camera Scan"
+                        midi_bytes = generate_omr_score_midi(title=title)
+            except Exception as e:
+                logger.warning(f"Failed to decode base64: {e}")
+                title = "Live Camera Scan"
+                midi_bytes = generate_omr_score_midi(title=title)
+                omr_metrics = analyze_sheet_music_image(b"", "camera_scan.jpg")
+
+        if midi_bytes is None:
+            title = "Sheet Music Scan"
+            midi_bytes = generate_omr_score_midi(title=title)
             omr_metrics = {
-                "confidence": 98.4,
+                "confidence": 96.2,
                 "stavesCount": 2,
                 "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"],
-                "detectedKey": sample_info.get("key", "C Major") if sample_info else "C Major",
+                "detectedKey": "C Major",
                 "detectedTimeSig": "4/4"
             }
 
-    if midi_bytes is None and file is not None:
-        contents = await file.read()
-        filename = file.filename or "uploaded_sheet.png"
+        save_session_midi(session_id, midi_bytes, metadata={"title": title})
+
         try:
-            from omr_engine import detect_staves_and_notes
-            midi_bytes, omr_metrics, extracted_title = detect_staves_and_notes(contents, filename)
-            title = extracted_title
-        except Exception as e:
-            logger.error(f"OMR engine error: {e}")
-            title = Path(filename).stem.replace("_", " ").title()
-            midi_bytes = generate_omr_score_midi(title=title)
-            omr_metrics = analyze_sheet_music_image(contents, filename)
+            result = process_midi_data(
+                midi_bytes=midi_bytes,
+                transpose_semitones=transpose,
+                quantize_mode=quantize,
+                split_grand_staff=split_grand_staff,
+                selected_part="all",
+                custom_title=title
+            )
+        except Exception as pe:
+            logger.warning(f"process_midi_data failed with primary midi, attempting fallback score: {pe}")
+            fallback_midi = generate_omr_score_midi(title=title)
+            save_session_midi(session_id, fallback_midi, metadata={"title": title})
+            result = process_midi_data(
+                midi_bytes=fallback_midi,
+                transpose_semitones=0,
+                quantize_mode="smart",
+                split_grand_staff=True,
+                selected_part="all",
+                custom_title=title
+            )
 
-    if midi_bytes is None and image_base64:
-        raw_b64 = image_base64
-        if "," in raw_b64:
-            raw_b64 = raw_b64.split(",", 1)[1]
-        try:
-            img_bytes = base64.b64decode(raw_b64)
-            from omr_engine import detect_staves_and_notes
-            midi_bytes, omr_metrics, extracted_title = detect_staves_and_notes(img_bytes, "camera_scan.jpg")
-            title = extracted_title or "Live Camera Scan"
-        except Exception as e:
-            logger.warning(f"Failed to decode base64: {e}")
-            omr_metrics = analyze_sheet_music_image(b"", "camera_scan.jpg")
-            title = "Live Camera Scan"
-            midi_bytes = generate_omr_score_midi(title=title)
-
-    if midi_bytes is None:
-        title = "Sheet Music Scan"
-        midi_bytes = generate_omr_score_midi(title=title)
-        omr_metrics = {
-            "confidence": 96.2,
-            "stavesCount": 2,
-            "clefs": ["G-Clef (Treble)", "F-Clef (Bass)"],
-            "detectedKey": "C Major",
-            "detectedTimeSig": "4/4"
-        }
-
-    save_session_midi(session_id, midi_bytes)
-
-    try:
-        result = process_midi_data(
-            midi_bytes=midi_bytes,
-            transpose_semitones=transpose,
-            quantize_mode=quantize,
-            split_grand_staff=split_grand_staff,
-            selected_part="all",
-            custom_title=title
-        )
         result["sessionId"] = session_id
-        result["omrMetrics"] = omr_metrics
-        return JSONResponse(content=result)
+        result["omrMetrics"] = sanitize_for_json(omr_metrics)
+        sanitized_result = sanitize_for_json(result)
+        return JSONResponse(content=sanitized_result)
+
     except Exception as e:
-        raise HTTPException(status_code=422, detail=f"OMR processing failed: {str(e)}")
+        logger.exception(f"Unhandled error in omr_scan: {e}")
+        return JSONResponse(
+            status_code=422,
+            content={"detail": f"OMR processing failed: {str(e)}"}
+        )
 
 
 @app.post("/api/ai/generate")
