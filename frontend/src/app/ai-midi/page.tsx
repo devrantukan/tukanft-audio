@@ -6,18 +6,67 @@ import StudioLayout from "@/components/StudioLayout";
 import { useLanguage } from "@/context/LanguageContext";
 import { ScoreData } from "@/types";
 
+const genreDescriptions: Record<string, string> = {
+  "Neo-Soul": "Moody neo-soul piano chords with warm lush 7th and 9th voicings, syncopated rhythm",
+  "Classical": "Expressive classical polyphonic piano composition with baroque counterpoint, graceful melodic ornaments",
+  "Lofi": "Chill nostalgic lofi hip-hop chord progression with dusty vinyl warmth, laid-back swung groove",
+  "Cinematic": "Dramatic cinematic soundtrack score with sweeping emotional progression, deep bass ostinato",
+  "Jazz": "Sophisticated jazz standard progression with rich ii-V-I substitutions, walking bassline",
+  "Synthwave": "Retro 80s synthwave arpeggiated synth sequence with energetic driving bassline, neon cyber pulse",
+};
+
+const generatePromptText = (selectedGenre: string, selectedKey: string, selectedBpm: number): string => {
+  const baseDesc = genreDescriptions[selectedGenre] || `${selectedGenre} composition with expressive musical phrasing`;
+  return `${baseDesc}, in ${selectedKey} at ${selectedBpm} BPM`;
+};
+
+const updateOrGeneratePrompt = (
+  currentPrompt: string,
+  currentGenre: string,
+  newKey: string,
+  newBpm: number
+): string => {
+  const inAtPattern = /,\s*in\s+.*?at\s+\d+\s*BPM/i;
+  const inPattern = /,\s*in\s+.*?(?:\s+at\s+\d+\s*BPM)?$/i;
+
+  if (inAtPattern.test(currentPrompt)) {
+    return currentPrompt.replace(inAtPattern, `, in ${newKey} at ${newBpm} BPM`);
+  } else if (inPattern.test(currentPrompt)) {
+    return currentPrompt.replace(inPattern, `, in ${newKey} at ${newBpm} BPM`);
+  } else if (currentPrompt.trim()) {
+    return `${currentPrompt.replace(/[.,;]+$/, "")}, in ${newKey} at ${newBpm} BPM`;
+  } else {
+    return generatePromptText(currentGenre, newKey, newBpm);
+  }
+};
+
 export default function AiMidiPage() {
   const { t } = useLanguage();
   const router = useRouter();
 
-  const [prompt, setPrompt] = useState(
-    "Moody neo-soul piano chords with warm lush 7th and 9th voicings, syncopated rhythm, in E flat major at 84 BPM"
-  );
   const [key, setKey] = useState("Eb Major");
   const [bpm, setBpm] = useState(84);
   const [genre, setGenre] = useState("Neo-Soul");
+  const [prompt, setPrompt] = useState(
+    "Moody neo-soul piano chords with warm lush 7th and 9th voicings, syncopated rhythm, in Eb Major at 84 BPM"
+  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleKeyChange = (newKey: string) => {
+    setKey(newKey);
+    setPrompt((prev) => updateOrGeneratePrompt(prev, genre, newKey, bpm));
+  };
+
+  const handleBpmChange = (newBpm: number) => {
+    setBpm(newBpm);
+    setPrompt((prev) => updateOrGeneratePrompt(prev, genre, key, newBpm));
+  };
+
+  const handleGenreChange = (newGenre: string) => {
+    setGenre(newGenre);
+    setPrompt(generatePromptText(newGenre, key, bpm));
+  };
 
   // Score and playback states
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
@@ -313,7 +362,7 @@ export default function AiMidiPage() {
                 </label>
                 <select
                   value={key}
-                  onChange={(e) => setKey(e.target.value)}
+                  onChange={(e) => handleKeyChange(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold focus:outline-none"
                 >
                   <option value="C Major">C Major</option>
@@ -334,7 +383,7 @@ export default function AiMidiPage() {
                   min={60}
                   max={180}
                   value={bpm}
-                  onChange={(e) => setBpm(Number(e.target.value))}
+                  onChange={(e) => handleBpmChange(Number(e.target.value))}
                   className="w-full accent-amber-500 cursor-pointer mt-2"
                 />
               </div>
@@ -345,7 +394,7 @@ export default function AiMidiPage() {
                 </label>
                 <select
                   value={genre}
-                  onChange={(e) => setGenre(e.target.value)}
+                  onChange={(e) => handleGenreChange(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold focus:outline-none"
                 >
                   <option value="Neo-Soul">Neo-Soul / R&B</option>
@@ -383,10 +432,10 @@ export default function AiMidiPage() {
                 <button
                   key={idx}
                   onClick={() => {
-                    setPrompt(p.desc);
                     setGenre(p.genre);
                     setKey(p.key);
                     setBpm(p.bpm);
+                    setPrompt(`${p.desc.replace(/[.,;]+$/, "")}, in ${p.key} at ${p.bpm} BPM`);
                   }}
                   className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-left transition flex flex-col justify-between gap-1 group"
                 >
