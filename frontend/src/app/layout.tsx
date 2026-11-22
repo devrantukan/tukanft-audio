@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import Providers from "@/components/Providers";
+import { createLocalizedAlternates, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
-const siteUrl = "https://audio.tukanft.com";
+const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -40,9 +41,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  alternates: {
-    canonical: siteUrl,
-  },
+  alternates: createLocalizedAlternates(""),
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -51,6 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
+    alternateLocale: ["tr_TR", "fr_FR", "es_ES", "de_DE", "it_IT"],
     url: siteUrl,
     siteName: "Tukanft Audio",
     title: "Tukanft Audio — AI Audio & Music Notation Suite",
@@ -115,6 +115,7 @@ const jsonLd = {
         "AI-powered audio and music notation suite: transform MIDI files into engraved sheet music, scan scores with camera OMR, play virtual piano, and transcribe polyphonic audio.",
       applicationCategory: "MultimediaApplication",
       operatingSystem: "Web, macOS, Windows, Linux, iOS, Android",
+      inLanguage: ["en", "tr", "fr", "es", "de", "it"],
       offers: {
         "@type": "Offer",
         price: "0",

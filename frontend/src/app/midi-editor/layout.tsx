@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
+import { createLocalizedAlternates } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Online MIDI Editor & Piano Roll — Draw, Quantize & Compose",
   description:
     "Interactive in-browser MIDI Piano Roll editor. Draw notes, quantize to grid, preview sounds with polyphonic synthesis, export standard MIDI (.mid), and engrave into sheet music.",
-  alternates: {
-    canonical: "/midi-editor",
-  },
+  alternates: createLocalizedAlternates("/midi-editor"),
   openGraph: {
     title: "Online MIDI Editor & Piano Roll — Tukanft Audio",
     description:
       "Interactive in-browser MIDI Piano Roll. Draw notes, quantize, preview sounds, export MIDI, and engrave sheet music.",
     url: "/midi-editor",
+    locale: "en_US",
+    alternateLocale: ["tr_TR", "fr_FR", "es_ES", "de_DE", "it_IT"],
   },
 };
 

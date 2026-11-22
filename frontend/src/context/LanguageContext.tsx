@@ -968,11 +968,23 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     try {
+      // 1. Check URL query param ?lang= for multi-locale deep linking & SEO
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get("lang")?.toLowerCase() as Language | null;
+        if (langParam && TRANSLATIONS[langParam]) {
+          setLanguageState(langParam);
+          localStorage.setItem("tukanft_language", langParam);
+          return;
+        }
+      }
+
+      // 2. Check localStorage
       const stored = localStorage.getItem("tukanft_language") as Language | null;
       if (stored && TRANSLATIONS[stored]) {
         setLanguageState(stored);
       } else {
-        // Auto-detect browser language if match found
+        // 3. Auto-detect browser language if match found
         const browserLang = navigator.language.slice(0, 2).toLowerCase() as Language;
         if (TRANSLATIONS[browserLang]) {
           setLanguageState(browserLang);
